@@ -1,0 +1,69 @@
+<div class="card character-panel">
+  <div class="card-header">
+    <h5>@(Character?.Name ?? "未创建角色")</h5>
+  </div>
+  <div class="card-body">
+    @if (Character != null)
+    {
+      <div class="character-info">
+        <p><strong>等级:</strong> @Character.Level</p>
+        <p><strong>经验:</strong> @Character.Experience / @(Character.Level * 100)</p>
+        
+        <div class="progress mb-2">
+          <div class="progress-bar bg-danger" role="progressbar" 
+               style="width: @(Character.MaxHealth > 0 ? (Character.CurrentHealth * 100 / Character.MaxHealth) : 0)%">
+            生命: @Character.CurrentHealth / @Character.MaxHealth
+          </div>
+        </div>
+        
+        <div class="progress mb-3">
+          <div class="progress-bar bg-primary" role="progressbar" 
+               style="width: @(Character.MaxMana > 0 ? (Character.CurrentMana * 100 / Character.MaxMana) : 0)%">
+            魔力: @Character.CurrentMana / @Character.MaxMana
+          </div>
+        </div>
+        
+        <h6>属性</h6>
+        <ul class="list-unstyled">
+          <li><i class="fas fa-fist-raised"></i> 力量: @Character.Strength</li>
+          <li><i class="fas fa-running"></i> 敏捷: @Character.Dexterity</li>
+          <li><i class="fas fa-brain"></i> 智力: @Character.Intelligence</li>
+          <li><i class="fas fa-heart"></i> 体力: @Character.Vitality</li>
+        </ul>
+
+        @if (Character.Skills.Count > 0)
+        {
+          <h6>技能</h6>
+          <ul class="list-unstyled">
+            @foreach (var skill in Character.Skills)
+            {
+              <li>@GetSkillName(skill.SkillType) Lv.@skill.Level</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+    else
+    {
+      <p class="text-muted">请先创建角色</p>
+    }
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public CharacterDTO? Character { get; set; }
+
+  private string GetSkillName(EnumSkill skill)
+  {
+    return skill switch
+    {
+      EnumSkill.BasicAttack => "普通攻击",
+      EnumSkill.Fireball => "火球术",
+      EnumSkill.IceArrow => "冰箭",
+      EnumSkill.LightningBolt => "闪电",
+      EnumSkill.HealingTouch => "治疗之触",
+      _ => skill.ToString()
+    };
+  }
+}
