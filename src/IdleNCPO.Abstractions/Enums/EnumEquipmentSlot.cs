@@ -14,5 +14,6 @@ public enum EnumEquipmentSlot
   Feet = 6,
   Ring1 = 7,
   Ring2 = 8,
-  Amulet = 9
+  Amulet = 9,
+  Belt = 10
 }

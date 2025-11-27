@@ -184,7 +184,7 @@ public class BeltItemProfile : AccessoryIdleProfile
   public override EnumItem Key => EnumItem.Belt;
   public override string Name => "腰带";
   public override string Description => "提供额外存储的腰带";
-  public override EnumEquipmentSlot Slot => EnumEquipmentSlot.Body; // Belt slot not in enum, using Body
+  public override EnumEquipmentSlot Slot => EnumEquipmentSlot.Belt;
   public override Dictionary<EnumAttribute, int> BaseAttributes => new() { { EnumAttribute.Vitality, 2 } };
   public override int SellValue => 10;
 }
