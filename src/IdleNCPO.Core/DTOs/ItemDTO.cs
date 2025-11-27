@@ -8,7 +8,8 @@ namespace IdleNCPO.Core.DTOs;
 public class ItemDTO
 {
   public Guid Id { get; set; }
-  public EnumEquipment EquipmentType { get; set; }
+  public EnumItem ItemType { get; set; }
+  public EnumItemCategory Category { get; set; }
   public EnumEquipmentSlot? EquippedSlot { get; set; }
   public int ItemLevel { get; set; }
   public Dictionary<EnumAttribute, int> Attributes { get; set; } = new();

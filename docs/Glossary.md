@@ -4,22 +4,27 @@
 
 ## 核心概念 (Core Concepts)
 
-### Profile (配置/模板)
-- **定义**: 游戏对象的静态定义模板
+### IdleProfile (配置/模板)
+- **定义**: 游戏对象的静态定义模板（使用 Idle 前缀以避免命名冲突）
 - **用途**: 定义游戏对象的类型、基础属性和行为
 - **特点**: 
-  - 每个 Profile 有一个唯一的 int 类型 Key
+  - 每个 IdleProfile 有一个唯一的枚举 Key
   - 使用枚举约束类型安全
   - 是只读的静态数据
-- **示例**: MapProfile, MonsterProfile, SkillProfile
+  - 使用抽象类继承模式，每个具体类型对应一个枚举值
+- **实现模式**:
+  - `IdleProfile<T>` 作为基类
+  - `MonsterIdleProfile` 作为怪物的抽象基类
+  - `SkeletonMonsterProfile : MonsterIdleProfile` 具体实现类
+- **示例**: MonsterIdleProfile, MapIdleProfile, SkillIdleProfile, ItemIdleProfile
 
-### Component (组件)
-- **定义**: 游戏对象的运行时实例
+### IdleComponent (组件)
+- **定义**: 游戏对象的运行时实例（使用 Idle 前缀以避免命名冲突）
 - **用途**: 保存游戏运行时的临时状态数据
 - **特点**:
-  - 通过 Key 与 Profile 关联
+  - 通过 Key 与 IdleProfile 关联
   - 包含动态变化的数据（如当前生命值）
-- **示例**: MapComponent, CharacterComponent
+- **示例**: MapIdleComponent, CharacterIdleComponent, MonsterIdleComponent
 
 ### Entity (实体)
 - **定义**: 持久化存储的数据对象
@@ -31,8 +36,8 @@
 
 ### DTO (数据传输对象)
 - **定义**: 用于数据传输的中间对象
-- **用途**: 在 Entity 和 Component 之间传递数据
-- **流向**: Entity + Profile → DTO → Component (单向)
+- **用途**: 在 Entity 和 IdleComponent 之间传递数据
+- **流向**: Entity + IdleProfile → DTO → IdleComponent (单向)
 
 ## 游戏元素 (Game Elements)
 
@@ -58,8 +63,17 @@
 - **定义**: 敌对的非玩家角色
 - **特点**: 被击杀可获得经验和物品
 
+### Item (物品)
+- **定义**: 游戏中所有可拾取的物品的基类
+- **分类**:
+  - Equipment (装备): 可穿戴的物品
+    - Weapon (武器): 提升攻击
+    - Armor (防具): 提供防护
+    - Accessory (饰品): 特殊效果
+  - Junk (垃圾): 只能出售的物品
+
 ### Equipment (装备)
-- **定义**: 可穿戴的物品
+- **定义**: 可穿戴的物品，是 Item 的子类
 - **用途**: 提升角色属性
 - **分类**: 武器、护甲、饰品等
 
@@ -119,5 +133,7 @@
 - `EnumMap`: 地图类型枚举
 - `EnumMonster`: 怪物类型枚举
 - `EnumSkill`: 技能类型枚举
-- `EnumEquipment`: 装备类型枚举
+- `EnumItem`: 物品类型枚举
+- `EnumItemCategory`: 物品分类枚举 (Equipment, Junk)
+- `EnumEquipmentSlot`: 装备槽位枚举
 - `EnumAttribute`: 属性类型枚举

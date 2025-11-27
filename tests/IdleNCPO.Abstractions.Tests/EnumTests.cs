@@ -26,10 +26,17 @@ public class EnumTests
   }
 
   [Fact]
-  public void EnumEquipment_ShouldHaveNotSpecifiedAsDefault()
+  public void EnumItem_ShouldHaveNotSpecifiedAsDefault()
   {
-    var defaultValue = default(EnumEquipment);
-    Assert.Equal(EnumEquipment.NotSpecified, defaultValue);
+    var defaultValue = default(EnumItem);
+    Assert.Equal(EnumItem.NotSpecified, defaultValue);
+  }
+
+  [Fact]
+  public void EnumItemCategory_ShouldHaveNotSpecifiedAsDefault()
+  {
+    var defaultValue = default(EnumItemCategory);
+    Assert.Equal(EnumItemCategory.NotSpecified, defaultValue);
   }
 
   [Fact]

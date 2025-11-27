@@ -4,11 +4,12 @@ using IdleNCPO.Abstractions.Enums;
 namespace IdleNCPO.Core.Entities;
 
 /// <summary>
-/// Entity for storing equipment/item information
+/// Entity for storing item information
 /// </summary>
 public class ItemEntity : BaseEntity
 {
-  public EnumEquipment EquipmentType { get; set; }
+  public EnumItem ItemType { get; set; }
+  public EnumItemCategory Category { get; set; }
   public Guid? OwnerId { get; set; }
   public EnumEquipmentSlot? EquippedSlot { get; set; }
   public int ItemLevel { get; set; } = 1;

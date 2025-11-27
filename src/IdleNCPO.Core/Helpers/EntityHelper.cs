@@ -31,7 +31,8 @@ public static class EntityHelper
     return new ItemDTO
     {
       Id = entity.Id,
-      EquipmentType = entity.EquipmentType,
+      ItemType = entity.ItemType,
+      Category = entity.Category,
       EquippedSlot = entity.EquippedSlot,
       ItemLevel = entity.ItemLevel,
       Attributes = new Dictionary<IdleNCPO.Abstractions.Enums.EnumAttribute, int>(entity.Attributes)

@@ -4,9 +4,9 @@ using IdleNCPO.Abstractions.Enums;
 namespace IdleNCPO.Core.Components;
 
 /// <summary>
-/// Component for skill runtime data
+/// IdleComponent for skill runtime data
 /// </summary>
-public class SkillComponent : BaseComponent<EnumSkill>
+public class SkillIdleComponent : IdleComponent<EnumSkill>
 {
   public override EnumSkill ProfileKey { get; protected set; }
   
@@ -22,7 +22,7 @@ public class SkillComponent : BaseComponent<EnumSkill>
   public int AreaRadius { get; set; }
   public List<EnumSupportSkill> LinkedSupports { get; set; } = new();
 
-  public SkillComponent(EnumSkill profileKey)
+  public SkillIdleComponent(EnumSkill profileKey)
   {
     ProfileKey = profileKey;
     Id = Guid.NewGuid();

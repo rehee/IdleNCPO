@@ -4,9 +4,9 @@ using IdleNCPO.Abstractions.Enums;
 namespace IdleNCPO.Core.Components;
 
 /// <summary>
-/// Component for map runtime data
+/// IdleComponent for map runtime data
 /// </summary>
-public class MapComponent : BaseComponent<EnumMap>
+public class MapIdleComponent : IdleComponent<EnumMap>
 {
   public override EnumMap ProfileKey { get; protected set; }
   
@@ -14,10 +14,10 @@ public class MapComponent : BaseComponent<EnumMap>
   public int Height { get; set; }
   public int CurrentWave { get; set; }
   public int TotalWaves { get; set; }
-  public List<MonsterComponent> Monsters { get; set; } = new();
-  public CharacterComponent? Player { get; set; }
+  public List<MonsterIdleComponent> Monsters { get; set; } = new();
+  public CharacterIdleComponent? Player { get; set; }
 
-  public MapComponent(EnumMap profileKey)
+  public MapIdleComponent(EnumMap profileKey)
   {
     ProfileKey = profileKey;
   }
@@ -25,7 +25,7 @@ public class MapComponent : BaseComponent<EnumMap>
   public bool IsWaveComplete => Monsters.All(m => !m.IsAlive);
   public bool IsMapComplete => IsWaveComplete && CurrentWave >= TotalWaves;
 
-  public List<MonsterComponent> GetAliveMonsters()
+  public List<MonsterIdleComponent> GetAliveMonsters()
   {
     return Monsters.Where(m => m.IsAlive).ToList();
   }

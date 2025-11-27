@@ -4,39 +4,41 @@
 
 <PageTitle>IdleNCPO - 放置类暗黑游戏</PageTitle>
 
-<div class="container-fluid">
-  <h1 class="my-4">IdleNCPO</h1>
-  <p class="text-muted">一个以暗黑破坏神为灵感的放置类游戏</p>
-  
-  @if (Character == null)
-  {
-    <div class="card">
-      <div class="card-header">
-        <h5>创建角色</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">角色名称</label>
-              <input type="text" class="form-control" @bind="characterName" placeholder="输入角色名称" />
+<BootstrapBlazorRoot>
+  <div class="container-fluid">
+    <h1 class="my-4">IdleNCPO</h1>
+    <p class="text-muted">一个以暗黑破坏神为灵感的放置类游戏</p>
+    
+    @if (Character == null)
+    {
+      <div class="card">
+        <div class="card-header">
+          <h5>创建角色</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">角色名称</label>
+                <input type="text" class="form-control" @bind="characterName" placeholder="输入角色名称" />
+              </div>
             </div>
           </div>
+          <button class="btn btn-primary" @onclick="CreateCharacter">创建角色</button>
         </div>
-        <button class="btn btn-primary" @onclick="CreateCharacter">创建角色</button>
       </div>
-    </div>
-  }
-  else
-  {
-    <GameContainer 
-      Character="@Character" 
-      Maps="@ProfileService.GetAllMapProfiles()" 
-      OnMapSelected="@HandleMapSelected"
-      CurrentBattle="@CurrentBattle"
-      OnBattleComplete="@HandleBattleComplete" />
-  }
-</div>
+    }
+    else
+    {
+      <GameContainer 
+        Character="@Character" 
+        Maps="@ProfileService.GetAllMapProfiles()" 
+        OnMapSelected="@HandleMapSelected"
+        CurrentBattle="@CurrentBattle"
+        OnBattleComplete="@HandleBattleComplete" />
+    }
+  </div>
+</BootstrapBlazorRoot>
 
 @code {
   private CharacterDTO? Character { get; set; }

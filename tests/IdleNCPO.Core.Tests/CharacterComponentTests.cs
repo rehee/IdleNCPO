@@ -3,12 +3,12 @@ using IdleNCPO.Core.Components;
 
 namespace IdleNCPO.Core.Tests;
 
-public class CharacterComponentTests
+public class CharacterIdleComponentTests
 {
   [Fact]
-  public void CharacterComponent_MaxHealth_ShouldCalculateFromVitality()
+  public void CharacterIdleComponent_MaxHealth_ShouldCalculateFromVitality()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Vitality = 10
     };
@@ -18,9 +18,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_MaxMana_ShouldCalculateFromIntelligence()
+  public void CharacterIdleComponent_MaxMana_ShouldCalculateFromIntelligence()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Intelligence = 10
     };
@@ -30,9 +30,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_TakeDamage_ShouldReduceHealth()
+  public void CharacterIdleComponent_TakeDamage_ShouldReduceHealth()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Vitality = 10,
       CurrentHealth = 100
@@ -44,9 +44,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_TakeDamage_ShouldNotGoBelowZero()
+  public void CharacterIdleComponent_TakeDamage_ShouldNotGoBelowZero()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Vitality = 10,
       CurrentHealth = 50
@@ -58,9 +58,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_Heal_ShouldIncreaseHealth()
+  public void CharacterIdleComponent_Heal_ShouldIncreaseHealth()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Vitality = 10,
       CurrentHealth = 50
@@ -72,9 +72,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_Heal_ShouldNotExceedMaxHealth()
+  public void CharacterIdleComponent_Heal_ShouldNotExceedMaxHealth()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Vitality = 10,
       CurrentHealth = 140
@@ -86,9 +86,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_IsAlive_ShouldBeTrueWhenHealthPositive()
+  public void CharacterIdleComponent_IsAlive_ShouldBeTrueWhenHealthPositive()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       CurrentHealth = 1
     };
@@ -97,9 +97,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_IsAlive_ShouldBeFalseWhenHealthZero()
+  public void CharacterIdleComponent_IsAlive_ShouldBeFalseWhenHealthZero()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       CurrentHealth = 0
     };
@@ -108,9 +108,9 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_AddExperience_ShouldLevelUp()
+  public void CharacterIdleComponent_AddExperience_ShouldLevelUp()
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Level = 1,
       Experience = 0
@@ -124,18 +124,20 @@ public class CharacterComponentTests
   }
 
   [Fact]
-  public void CharacterComponent_GetArmor_ShouldSumEquipmentArmor()
+  public void CharacterIdleComponent_GetArmor_ShouldSumEquipmentArmor()
   {
-    var character = new CharacterComponent();
-    character.Equipment.Add(new EquipmentComponent(EnumEquipment.Shield)
+    var character = new CharacterIdleComponent();
+    character.Equipment.Add(new ItemIdleComponent(EnumItem.Shield)
     {
+      Category = EnumItemCategory.Equipment,
       Attributes = new Dictionary<EnumAttribute, int>
       {
         { EnumAttribute.Armor, 10 }
       }
     });
-    character.Equipment.Add(new EquipmentComponent(EnumEquipment.ChestArmor)
+    character.Equipment.Add(new ItemIdleComponent(EnumItem.ChestArmor)
     {
+      Category = EnumItemCategory.Equipment,
       Attributes = new Dictionary<EnumAttribute, int>
       {
         { EnumAttribute.Armor, 15 }

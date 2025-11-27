@@ -55,10 +55,10 @@ public class ProfileServiceTests
   [Fact]
   public void GetEquipmentProfile_LongSword_ReturnsProfile()
   {
-    var profile = _profileService.GetEquipmentProfile(EnumEquipment.LongSword);
+    var profile = _profileService.GetEquipmentProfile(EnumItem.LongSword);
     
     Assert.NotNull(profile);
-    Assert.Equal(EnumEquipment.LongSword, profile.Key);
+    Assert.Equal(EnumItem.LongSword, profile.Key);
     Assert.Equal("长剑", profile.Name);
     Assert.Equal(EnumEquipmentSlot.MainHand, profile.Slot);
   }

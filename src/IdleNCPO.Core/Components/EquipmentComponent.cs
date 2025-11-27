@@ -4,18 +4,19 @@ using IdleNCPO.Abstractions.Enums;
 namespace IdleNCPO.Core.Components;
 
 /// <summary>
-/// Component for equipment runtime data
+/// IdleComponent for item runtime data
 /// </summary>
-public class EquipmentComponent : BaseComponent<EnumEquipment>
+public class ItemIdleComponent : IdleComponent<EnumItem>
 {
-  public override EnumEquipment ProfileKey { get; protected set; }
+  public override EnumItem ProfileKey { get; protected set; }
   
   public Guid Id { get; set; }
-  public EnumEquipmentSlot Slot { get; set; }
+  public EnumItemCategory Category { get; set; }
+  public EnumEquipmentSlot? Slot { get; set; }
   public int ItemLevel { get; set; }
   public Dictionary<EnumAttribute, int> Attributes { get; set; } = new();
 
-  public EquipmentComponent(EnumEquipment profileKey)
+  public ItemIdleComponent(EnumItem profileKey)
   {
     ProfileKey = profileKey;
     Id = Guid.NewGuid();
@@ -25,4 +26,6 @@ public class EquipmentComponent : BaseComponent<EnumEquipment>
   {
     return Attributes.TryGetValue(attribute, out var value) ? value : 0;
   }
+
+  public bool IsEquipment => Category == EnumItemCategory.Equipment;
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,6 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>IdleNCPO.Desktop</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BootstrapBlazor" Version="9.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="8.0.91" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IdleNCPO.Shared\IdleNCPO.Shared.csproj" />
+  </ItemGroup>
 
 </Project>

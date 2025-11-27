@@ -5,9 +5,9 @@ using IdleNCPO.Abstractions.Interfaces;
 namespace IdleNCPO.Core.Components;
 
 /// <summary>
-/// Component for character runtime data
+/// IdleComponent for character runtime data
 /// </summary>
-public class CharacterComponent : BaseComponent<EnumMonster>, IActor
+public class CharacterIdleComponent : IdleComponent<EnumMonster>, IActor
 {
   public override EnumMonster ProfileKey { get; protected set; }
   
@@ -28,8 +28,8 @@ public class CharacterComponent : BaseComponent<EnumMonster>, IActor
   public int X { get; set; }
   public int Y { get; set; }
   
-  public List<SkillComponent> Skills { get; set; } = new();
-  public List<EquipmentComponent> Equipment { get; set; } = new();
+  public List<SkillIdleComponent> Skills { get; set; } = new();
+  public List<ItemIdleComponent> Equipment { get; set; } = new();
 
   public void TakeDamage(int amount)
   {

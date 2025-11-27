@@ -53,6 +53,13 @@ app.MapGet("/api/profiles/skills", (ProfileService profileService) =>
 .WithName("GetSkills")
 .WithOpenApi();
 
+app.MapGet("/api/profiles/items", (ProfileService profileService) =>
+{
+  return profileService.GetAllItemProfiles();
+})
+.WithName("GetItems")
+.WithOpenApi();
+
 app.MapGet("/api/profiles/equipment", (ProfileService profileService) =>
 {
   return profileService.GetAllEquipmentProfiles();

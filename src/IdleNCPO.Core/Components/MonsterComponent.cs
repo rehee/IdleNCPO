@@ -5,9 +5,9 @@ using IdleNCPO.Abstractions.Interfaces;
 namespace IdleNCPO.Core.Components;
 
 /// <summary>
-/// Component for monster runtime data
+/// IdleComponent for monster runtime data
 /// </summary>
-public class MonsterComponent : BaseComponent<EnumMonster>, IActor
+public class MonsterIdleComponent : IdleComponent<EnumMonster>, IActor
 {
   public override EnumMonster ProfileKey { get; protected set; }
   
@@ -27,7 +27,7 @@ public class MonsterComponent : BaseComponent<EnumMonster>, IActor
   public int X { get; set; }
   public int Y { get; set; }
 
-  public MonsterComponent(EnumMonster profileKey)
+  public MonsterIdleComponent(EnumMonster profileKey)
   {
     ProfileKey = profileKey;
     Id = Guid.NewGuid();

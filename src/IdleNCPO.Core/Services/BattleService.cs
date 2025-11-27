@@ -21,7 +21,7 @@ public class BattleService : IBattle
   public bool IsFinished { get; private set; }
   public bool IsVictory { get; private set; }
   
-  public MapComponent Map { get; private set; }
+  public MapIdleComponent Map { get; private set; }
   public int ExperienceGained { get; private set; }
   public List<ItemDTO> ItemsDropped { get; } = new();
 
@@ -39,13 +39,13 @@ public class BattleService : IBattle
     IsVictory = false;
   }
 
-  private MapComponent InitializeMap(BattleSeedDTO seed)
+  private MapIdleComponent InitializeMap(BattleSeedDTO seed)
   {
     var mapProfile = _profileService.GetMapProfile(seed.MapKey);
     if (mapProfile == null)
       throw new ArgumentException($"Map profile not found: {seed.MapKey}");
 
-    var map = new MapComponent(seed.MapKey)
+    var map = new MapIdleComponent(seed.MapKey)
     {
       Width = mapProfile.Width,
       Height = mapProfile.Height,
@@ -60,9 +60,9 @@ public class BattleService : IBattle
     return map;
   }
 
-  private CharacterComponent CreatePlayerComponent(CharacterDTO dto)
+  private CharacterIdleComponent CreatePlayerComponent(CharacterDTO dto)
   {
-    var character = new CharacterComponent
+    var character = new CharacterIdleComponent
     {
       Id = dto.Id,
       Name = dto.Name,
@@ -85,7 +85,7 @@ public class BattleService : IBattle
       var skillProfile = _profileService.GetSkillProfile(skillDto.SkillType);
       if (skillProfile != null)
       {
-        var skill = new SkillComponent(skillDto.SkillType)
+        var skill = new SkillIdleComponent(skillDto.SkillType)
         {
           Id = skillDto.Id,
           Level = skillDto.Level,
@@ -105,12 +105,13 @@ public class BattleService : IBattle
     // Add equipment
     foreach (var itemDto in dto.Equipment)
     {
-      var equipmentProfile = _profileService.GetEquipmentProfile(itemDto.EquipmentType);
+      var equipmentProfile = _profileService.GetEquipmentProfile(itemDto.ItemType);
       if (equipmentProfile != null)
       {
-        var equipment = new EquipmentComponent(itemDto.EquipmentType)
+        var equipment = new ItemIdleComponent(itemDto.ItemType)
         {
           Id = itemDto.Id,
+          Category = EnumItemCategory.Equipment,
           Slot = itemDto.EquippedSlot ?? equipmentProfile.Slot,
           ItemLevel = itemDto.ItemLevel,
           Attributes = itemDto.Attributes
@@ -122,7 +123,7 @@ public class BattleService : IBattle
     return character;
   }
 
-  private void SpawnWave(MapComponent map, MapProfile mapProfile, int waveNumber, int mapLevel)
+  private void SpawnWave(MapIdleComponent map, MapIdleProfile mapProfile, int waveNumber, int mapLevel)
   {
     var waveDefinition = mapProfile.Waves.FirstOrDefault(w => w.WaveNumber == waveNumber);
     if (waveDefinition == null) return;
@@ -137,7 +138,7 @@ public class BattleService : IBattle
       for (int i = 0; i < spawn.Count; i++)
       {
         var level = mapLevel + spawn.LevelModifier;
-        var monster = new MonsterComponent(spawn.MonsterType)
+        var monster = new MonsterIdleComponent(spawn.MonsterType)
         {
           Name = monsterProfile.Name,
           Level = level,
@@ -193,7 +194,7 @@ public class BattleService : IBattle
     }
   }
 
-  private void UseSkill(CharacterComponent user, MonsterComponent target, SkillComponent skill)
+  private void UseSkill(CharacterIdleComponent user, MonsterIdleComponent target, SkillIdleComponent skill)
   {
     user.CurrentMana -= skill.ManaCost;
     skill.Use();
@@ -265,18 +266,16 @@ public class BattleService : IBattle
   private void GenerateLoot()
   {
     var itemCount = _lootRandom.Next(1, 4);
-    var equipmentTypes = Enum.GetValues<EnumEquipment>().Where(e => e != EnumEquipment.NotSpecified).ToArray();
+    var equipmentProfiles = _profileService.GetAllEquipmentProfiles().ToArray();
 
     for (int i = 0; i < itemCount; i++)
     {
-      var equipmentType = equipmentTypes[_lootRandom.Next(equipmentTypes.Length)];
-      var profile = _profileService.GetEquipmentProfile(equipmentType);
-      if (profile == null) continue;
+      var profile = equipmentProfiles[_lootRandom.Next(equipmentProfiles.Length)];
 
       var item = new ItemDTO
       {
         Id = Guid.NewGuid(),
-        EquipmentType = equipmentType,
+        ItemType = profile.Key,
         ItemLevel = Map.Player?.Level ?? 1,
         Attributes = new Dictionary<EnumAttribute, int>(profile.BaseAttributes)
       };
