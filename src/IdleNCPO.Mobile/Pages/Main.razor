@@ -1,37 +1,35 @@
 @using IdleNCPO.Core.Helpers
 @inject ProfileService ProfileService
 
-<BootstrapBlazorRoot>
-  <div class="container-fluid p-2">
-    <h4 class="mb-3">IdleNCPO Mobile</h4>
-    <p class="text-muted small">一个以暗黑破坏神为灵感的放置类游戏</p>
-    
-    @if (Character == null)
-    {
-      <div class="card">
-        <div class="card-header">
-          <h6>创建角色</h6>
-        </div>
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">角色名称</label>
-            <input type="text" class="form-control" @bind="characterName" placeholder="输入角色名称" />
-          </div>
-          <button class="btn btn-primary w-100" @onclick="CreateCharacter">创建角色</button>
-        </div>
+<div class="container-fluid p-2">
+  <h4 class="mb-3">IdleNCPO Mobile</h4>
+  <p class="text-muted small">一个以暗黑破坏神为灵感的放置类游戏</p>
+  
+  @if (Character == null)
+  {
+    <div class="card">
+      <div class="card-header">
+        <h6>创建角色</h6>
       </div>
-    }
-    else
-    {
-      <GameContainer 
-        Character="@Character" 
-        Maps="@ProfileService.GetAllMapProfiles()" 
-        OnMapSelected="@HandleMapSelected"
-        CurrentBattle="@CurrentBattle"
-        OnBattleComplete="@HandleBattleComplete" />
-    }
-  </div>
-</BootstrapBlazorRoot>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">角色名称</label>
+          <input type="text" class="form-control" @bind="characterName" placeholder="输入角色名称" />
+        </div>
+        <button class="btn btn-primary w-100" @onclick="CreateCharacter">创建角色</button>
+      </div>
+    </div>
+  }
+  else
+  {
+    <GameContainer 
+      Character="@Character" 
+      Maps="@ProfileService.GetAllMapProfiles()" 
+      OnMapSelected="@HandleMapSelected"
+      CurrentBattle="@CurrentBattle"
+      OnBattleComplete="@HandleBattleComplete" />
+  }
+</div>
 
 @code {
   private CharacterDTO? Character { get; set; }
