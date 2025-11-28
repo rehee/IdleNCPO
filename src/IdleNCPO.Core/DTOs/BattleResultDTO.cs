@@ -1,4 +1,5 @@
 using IdleNCPO.Abstractions.Enums;
+using IdleNCPO.Core.Profiles;
 
 namespace IdleNCPO.Core.DTOs;
 
@@ -39,9 +40,9 @@ public class BattleResultDTO
   public int TotalTicks { get; set; }
 
   /// <summary>
-  /// Duration of the battle in seconds (TotalTicks / 30)
+  /// Duration of the battle in seconds (TotalTicks / TicksPerSecond)
   /// </summary>
-  public double DurationSeconds => TotalTicks / 30.0;
+  public double DurationSeconds => (double)TotalTicks / MapIdleProfile.TicksPerSecond;
 
   /// <summary>
   /// Whether the player won the battle

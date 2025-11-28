@@ -91,7 +91,7 @@ public class BattlePlaybackService
   /// <summary>
   /// Stop the current playback
   /// </summary>
-  public async Task StopPlaybackAsync()
+  public Task StopPlaybackAsync()
   {
     if (_cancellationTokenSource != null)
     {
@@ -101,7 +101,7 @@ public class BattlePlaybackService
     }
 
     _isPlaying = false;
-    await Task.CompletedTask;
+    return Task.CompletedTask;
   }
 
   /// <summary>
