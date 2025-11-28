@@ -1,0 +1,136 @@
+@using IdleNCPO.Core.Services
+
+<div class="card battle-view">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5>战斗中 - @GetMapName(Battle?.Map.ProfileKey ?? EnumMap.NotSpecified)</h5>
+    <span class="badge bg-info">Tick: @(Battle?.CurrentTick ?? 0)</span>
+  </div>
+  <div class="card-body">
+    @if (Battle != null)
+    {
+      <div class="row">
+        <div class="col-md-6">
+          <h6>玩家</h6>
+          @if (Battle.Map.Player != null)
+          {
+            <div class="progress mb-2">
+              <div class="progress-bar bg-danger" role="progressbar" 
+                   style="width: @(Battle.Map.Player.MaxHealth > 0 ? (Battle.Map.Player.CurrentHealth * 100 / Battle.Map.Player.MaxHealth) : 0)%">
+                HP: @Battle.Map.Player.CurrentHealth / @Battle.Map.Player.MaxHealth
+              </div>
+            </div>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-primary" role="progressbar" 
+                   style="width: @(Battle.Map.Player.MaxMana > 0 ? (Battle.Map.Player.CurrentMana * 100 / Battle.Map.Player.MaxMana) : 0)%">
+                MP: @Battle.Map.Player.CurrentMana / @Battle.Map.Player.MaxMana
+              </div>
+            </div>
+          }
+        </div>
+        <div class="col-md-6">
+          <h6>怪物 (波次 @Battle.Map.CurrentWave/@Battle.Map.TotalWaves)</h6>
+          @foreach (var monster in Battle.Map.GetAliveMonsters().Take(5))
+          {
+            <div class="monster-hp mb-1">
+              <small>@monster.Name Lv.@monster.Level</small>
+              <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-warning" role="progressbar" 
+                     style="width: @(monster.MaxHealth > 0 ? (monster.CurrentHealth * 100 / monster.MaxHealth) : 0)%">
+                </div>
+              </div>
+            </div>
+          }
+          @if (Battle.Map.GetAliveMonsters().Count() > 5)
+          {
+            <small class="text-muted">还有 @(Battle.Map.GetAliveMonsters().Count() - 5) 个怪物...</small>
+          }
+        </div>
+      </div>
+
+      @if (!Battle.IsFinished)
+      {
+        <div class="mt-3 text-center">
+          <button class="btn btn-primary me-2" @onclick="ProcessTicks" disabled="@isProcessing">
+            @if (isProcessing)
+            {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            }
+            战斗 (10 Ticks)
+          </button>
+          <button class="btn btn-success" @onclick="AutoBattle" disabled="@isProcessing">
+            自动战斗
+          </button>
+        </div>
+      }
+      else
+      {
+        <div class="mt-3 text-center">
+          <div class="alert @(Battle.IsVictory ? "alert-success" : "alert-danger")">
+            <h5>@(Battle.IsVictory ? "胜利!" : "失败...")</h5>
+            @if (Battle.IsVictory)
+            {
+              <p>获得经验: @Battle.ExperienceGained</p>
+              @if (Battle.ItemsDropped.Count > 0)
+              {
+                <p>获得物品: @Battle.ItemsDropped.Count 件</p>
+              }
+            }
+          </div>
+          <button class="btn btn-primary" @onclick="CompleteBattle">返回</button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public BattleService? Battle { get; set; }
+
+  [Parameter]
+  public EventCallback<BattleService> OnBattleComplete { get; set; }
+
+  private bool isProcessing = false;
+
+  private string GetMapName(EnumMap map)
+  {
+    return map switch
+    {
+      EnumMap.StarterVillage => "新手村",
+      EnumMap.DarkCave => "黑暗洞窟",
+      EnumMap.ForestPath => "森林小径",
+      EnumMap.GoblinCamp => "哥布林营地",
+      EnumMap.UndeadCrypt => "亡灵地穴",
+      _ => map.ToString()
+    };
+  }
+
+  private void ProcessTicks()
+  {
+    if (Battle == null) return;
+    isProcessing = true;
+    
+    for (int i = 0; i < 10 && !Battle.IsFinished; i++)
+    {
+      Battle.ProcessTick();
+    }
+    
+    isProcessing = false;
+    StateHasChanged();
+  }
+
+  private void AutoBattle()
+  {
+    if (Battle == null) return;
+    Battle.RunToCompletion();
+    StateHasChanged();
+  }
+
+  private async Task CompleteBattle()
+  {
+    if (Battle != null)
+    {
+      await OnBattleComplete.InvokeAsync(Battle);
+    }
+  }
+}

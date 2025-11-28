@@ -1,0 +1,116 @@
+@using IdleNCPO.Core.Helpers
+@inject ProfileService ProfileService
+
+<div class="container-fluid p-3">
+  <h1 class="mb-4">IdleNCPO Desktop</h1>
+  <p class="text-muted">一个以暗黑破坏神为灵感的放置类游戏 - 桌面版</p>
+  
+  @if (Character == null)
+  {
+    <div class="card">
+      <div class="card-header">
+        <h5>创建角色</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">角色名称</label>
+              <input type="text" class="form-control" @bind="characterName" placeholder="输入角色名称" />
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" @onclick="CreateCharacter">创建角色</button>
+      </div>
+    </div>
+  }
+  else
+  {
+    <GameContainer 
+      Character="@Character" 
+      Maps="@ProfileService.GetAllMapProfiles()" 
+      OnMapSelected="@HandleMapSelected"
+      CurrentBattle="@CurrentBattle"
+      OnBattleComplete="@HandleBattleComplete" />
+  }
+</div>
+
+@code {
+  private CharacterDTO? Character { get; set; }
+  private BattleService? CurrentBattle { get; set; }
+  private string characterName = "英雄";
+
+  private void CreateCharacter()
+  {
+    if (string.IsNullOrWhiteSpace(characterName)) return;
+
+    Character = new CharacterDTO
+    {
+      Id = Guid.NewGuid(),
+      Name = characterName,
+      Level = 1,
+      Experience = 0,
+      Strength = 10,
+      Dexterity = 10,
+      Intelligence = 10,
+      Vitality = 10,
+      CurrentHealth = 150,
+      MaxHealth = 150,
+      CurrentMana = 80,
+      MaxMana = 80,
+      Skills = new List<SkillDTO>
+      {
+        new SkillDTO
+        {
+          Id = Guid.NewGuid(),
+          SkillType = EnumSkill.BasicAttack,
+          Level = 1
+        },
+        new SkillDTO
+        {
+          Id = Guid.NewGuid(),
+          SkillType = EnumSkill.Fireball,
+          Level = 1
+        }
+      }
+    };
+  }
+
+  private void HandleMapSelected(EnumMap mapKey)
+  {
+    if (Character == null) return;
+
+    var seed = BattleSeedHelper.CreateBattleSeed(
+      Character,
+      mapKey,
+      1,
+      Character.Level);
+
+    CurrentBattle = new BattleService(ProfileService, seed);
+  }
+
+  private void HandleBattleComplete(BattleService battle)
+  {
+    if (Character != null && battle.IsVictory)
+    {
+      Character.Experience += battle.ExperienceGained;
+      
+      while (Character.Experience >= Character.Level * 100)
+      {
+        Character.Experience -= Character.Level * 100;
+        Character.Level++;
+        Character.Strength += 2;
+        Character.Dexterity += 2;
+        Character.Intelligence += 2;
+        Character.Vitality += 2;
+      }
+
+      Character.MaxHealth = Character.Vitality * 10 + 50;
+      Character.MaxMana = Character.Intelligence * 5 + 30;
+      Character.CurrentHealth = Character.MaxHealth;
+      Character.CurrentMana = Character.MaxMana;
+    }
+    
+    CurrentBattle = null;
+  }
+}

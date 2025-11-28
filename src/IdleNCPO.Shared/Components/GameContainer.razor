@@ -1,0 +1,48 @@
+@using IdleNCPO.Core.Services
+
+<div class="game-container">
+  <div class="row">
+    <div class="col-md-4">
+      <CharacterPanel Character="@Character" />
+    </div>
+    <div class="col-md-8">
+      <MapSelector Maps="@Maps" OnMapSelected="@HandleMapSelected" />
+    </div>
+  </div>
+  
+  @if (CurrentBattle != null)
+  {
+    <div class="row mt-3">
+      <div class="col-12">
+        <BattleView Battle="@CurrentBattle" OnBattleComplete="@HandleBattleComplete" />
+      </div>
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public CharacterDTO? Character { get; set; }
+
+  [Parameter]
+  public IEnumerable<IdleNCPO.Core.Profiles.MapIdleProfile>? Maps { get; set; }
+
+  [Parameter]
+  public EventCallback<EnumMap> OnMapSelected { get; set; }
+
+  [Parameter]
+  public BattleService? CurrentBattle { get; set; }
+
+  [Parameter]
+  public EventCallback<BattleService> OnBattleComplete { get; set; }
+
+  private async Task HandleMapSelected(EnumMap map)
+  {
+    await OnMapSelected.InvokeAsync(map);
+  }
+
+  private async Task HandleBattleComplete(BattleService battle)
+  {
+    await OnBattleComplete.InvokeAsync(battle);
+  }
+}
