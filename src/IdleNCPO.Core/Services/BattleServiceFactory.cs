@@ -6,6 +6,8 @@ namespace IdleNCPO.Core.Services;
 /// <summary>
 /// Factory for creating BattleService instances
 /// Implements dependency injection pattern - services that need runtime data should be created via factory
+/// Note: Uses concrete ProfileService because BattleService requires access to concrete profile types
+/// (e.g., MapIdleProfile.Waves) that are not exposed through the interface
 /// </summary>
 public class BattleServiceFactory : IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>
 {
