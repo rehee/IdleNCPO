@@ -7,7 +7,7 @@ namespace IdleNCPO.Core.Components;
 /// <summary>
 /// IdleComponent for character runtime data
 /// </summary>
-public class CharacterIdleComponent : IdleComponent<EnumMonster>, IActor
+public class CharacterIdleComponent : IdleComponent<EnumMonster>, IMapActor
 {
   public override EnumMonster ProfileKey { get; protected set; }
   
@@ -25,8 +25,16 @@ public class CharacterIdleComponent : IdleComponent<EnumMonster>, IActor
   public int MaxMana => Intelligence * 5 + 30;
   public bool IsAlive => CurrentHealth > 0;
   
+  // Legacy integer position (kept for backward compatibility)
   public int X { get; set; }
   public int Y { get; set; }
+  
+  // IMapActor implementation - 2D position with double precision
+  public Position2D Position { get; set; }
+  public double Radius => GameMap2D.StandardRadius;
+  public double MoveSpeed { get; set; } = 0.1;
+  public IMapActor? MoveTarget { get; set; }
+  public bool IsColliding { get; set; }
   
   public List<SkillIdleComponent> Skills { get; set; } = new();
   public List<ItemIdleComponent> Equipment { get; set; } = new();
@@ -60,5 +68,40 @@ public class CharacterIdleComponent : IdleComponent<EnumMonster>, IActor
   public int GetExperienceForNextLevel()
   {
     return Level * 100;
+  }
+
+  /// <summary>
+  /// Calculate distance to another actor (center to center minus both radii)
+  /// </summary>
+  public double DistanceTo(IMapActor other)
+  {
+    var centerDistance = Position.DistanceTo(other.Position);
+    return centerDistance - Radius - other.Radius;
+  }
+
+  /// <summary>
+  /// Get the grid cell this actor occupies
+  /// </summary>
+  public (int GridX, int GridY) GetGridCell()
+  {
+    return Position.GetGridCell();
+  }
+
+  /// <summary>
+  /// Move towards the target position by speed amount
+  /// </summary>
+  public void MoveTowards(Position2D target, double speed)
+  {
+    var direction = Position.DirectionTo(target);
+    var distance = Position.DistanceTo(target);
+    
+    if (distance <= speed)
+    {
+      Position = target;
+    }
+    else
+    {
+      Position = Position + direction * speed;
+    }
   }
 }

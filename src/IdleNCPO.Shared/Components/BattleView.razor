@@ -8,6 +8,11 @@
   <div class="card-body">
     @if (Battle != null)
     {
+      @* 2D Map View *@
+      <div class="mb-3">
+        <MapView2D Battle="@Battle" />
+      </div>
+      
       <div class="row">
         <div class="col-md-6">
           <h6>玩家</h6>

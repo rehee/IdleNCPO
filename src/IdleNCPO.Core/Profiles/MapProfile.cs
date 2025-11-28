@@ -1,5 +1,6 @@
 using IdleNCPO.Abstractions.Enums;
 using IdleNCPO.Abstractions.Profiles;
+using IdleNCPO.Core.Components;
 
 namespace IdleNCPO.Core.Profiles;
 
@@ -24,11 +25,12 @@ public class MonsterSpawn
 
 /// <summary>
 /// Abstract base profile for all map types
+/// Map default: 20x20 units as per requirements
 /// </summary>
 public abstract class MapIdleProfile : IdleProfile<EnumMap>
 {
-  public abstract int Width { get; }
-  public abstract int Height { get; }
+  public virtual int Width => GameMap2D.DefaultWidth;
+  public virtual int Height => GameMap2D.DefaultHeight;
   public abstract int MinLevel { get; }
   public abstract int MaxLevel { get; }
   public abstract List<WaveDefinition> Waves { get; }
@@ -42,8 +44,6 @@ public class StarterVillageMapProfile : MapIdleProfile
   public override EnumMap Key => EnumMap.StarterVillage;
   public override string Name => "新手村";
   public override string Description => "适合初学者的安全区域";
-  public override int Width => 10;
-  public override int Height => 10;
   public override int MinLevel => 1;
   public override int MaxLevel => 5;
   public override List<WaveDefinition> Waves => new()
@@ -61,8 +61,6 @@ public class DarkCaveMapProfile : MapIdleProfile
   public override EnumMap Key => EnumMap.DarkCave;
   public override string Name => "黑暗洞窟";
   public override string Description => "危险的地下洞穴";
-  public override int Width => 15;
-  public override int Height => 15;
   public override int MinLevel => 5;
   public override int MaxLevel => 10;
   public override List<WaveDefinition> Waves => new()
