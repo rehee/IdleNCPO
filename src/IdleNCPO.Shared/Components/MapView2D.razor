@@ -13,18 +13,18 @@
         @* Grid lines *@
         @for (int x = 0; x <= Battle.Map.Width; x++)
         {
-          <div style="position: absolute; left: @(x * PixelsPerUnit)px; top: 0; width: 1px; height: 100%; background-color: #333;"></div>
+          <div style="position: absolute; left: @(x * GameMap2D.PixelsPerUnit)px; top: 0; width: 1px; height: 100%; background-color: #333;"></div>
         }
         @for (int y = 0; y <= Battle.Map.Height; y++)
         {
-          <div style="position: absolute; left: 0; top: @(y * PixelsPerUnit)px; width: 100%; height: 1px; background-color: #333;"></div>
+          <div style="position: absolute; left: 0; top: @(y * GameMap2D.PixelsPerUnit)px; width: 100%; height: 1px; background-color: #333;"></div>
         }
         
         @* Player *@
         @if (Battle.Map.Player != null && Battle.Map.Player.IsAlive)
         {
           var playerPixel = GetPixelPosition(Battle.Map.Player.Position);
-          var playerSize = (int)(Battle.Map.Player.Radius * 2 * PixelsPerUnit);
+          var playerSize = (int)(Battle.Map.Player.Radius * 2 * GameMap2D.PixelsPerUnit);
           <div class="actor player @(Battle.Map.Player.IsColliding ? "colliding" : "")"
                style="position: absolute; 
                       left: @(playerPixel.PixelX - playerSize/2)px; 
@@ -48,7 +48,7 @@
         @foreach (var monster in Battle.Map.GetAliveMonsters())
         {
           var monsterPixel = GetPixelPosition(monster.Position);
-          var monsterSize = (int)(monster.Radius * 2 * PixelsPerUnit);
+          var monsterSize = (int)(monster.Radius * 2 * GameMap2D.PixelsPerUnit);
           <div class="actor monster @(monster.IsColliding ? "colliding" : "")"
                style="position: absolute; 
                       left: @(monsterPixel.PixelX - monsterSize/2)px; 
@@ -132,8 +132,6 @@
 @code {
   [Parameter]
   public BattleService? Battle { get; set; }
-
-  private const int PixelsPerUnit = GameMap2D.PixelsPerUnit;
 
   private string GetMapName(EnumMap map)
   {

@@ -46,18 +46,21 @@ public class MapIdleComponent : IdleComponent<EnumMap>
   }
 
   /// <summary>
-  /// Update game map when monsters are spawned
+  /// Update game map when monsters are spawned (e.g., new wave)
+  /// This method ensures all current actors are registered with the map.
+  /// Duplicate additions are handled by GameMap2D.AddActor which skips existing actors.
   /// </summary>
   public void UpdateGameMapActors()
   {
     if (GameMap == null) return;
 
-    // Re-add all actors
+    // Ensure player is added (skips if already present)
     if (Player != null)
     {
       GameMap.AddActor(Player);
     }
     
+    // Ensure all monsters are added (skips those already present)
     foreach (var monster in Monsters)
     {
       GameMap.AddActor(monster);

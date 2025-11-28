@@ -257,10 +257,12 @@ public class BattleService : IBattle
     var skill = Map.Player.Skills.FirstOrDefault(s => s.IsReady && Map.Player.CurrentMana >= s.ManaCost);
     if (skill == null) return;
 
-    // Find target in skill range
+    // Find target in skill range (calculate distance once per monster)
     var target = aliveMonsters
-      .Where(m => Map.Player.DistanceTo(m) <= skill.Range)
-      .OrderBy(m => Map.Player.DistanceTo(m))
+      .Select(m => new { Monster = m, Distance = Map.Player.DistanceTo(m) })
+      .Where(x => x.Distance <= skill.Range)
+      .OrderBy(x => x.Distance)
+      .Select(x => x.Monster)
       .FirstOrDefault();
 
     if (target != null)

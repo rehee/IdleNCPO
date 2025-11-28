@@ -57,6 +57,11 @@ public class GameMap2D
   /// </summary>
   private readonly List<IMapActor> _actors = new();
 
+  /// <summary>
+  /// Track which cell each actor is currently in
+  /// </summary>
+  private readonly Dictionary<IMapActor, GridCell?> _actorCells = new();
+
   public GameMap2D(int width = DefaultWidth, int height = DefaultHeight)
   {
     Width = width;
@@ -109,7 +114,9 @@ public class GameMap2D
     if (_actors.Contains(actor)) return;
 
     _actors.Add(actor);
-    UpdateActorCell(actor);
+    var cell = GetCell(actor.Position);
+    cell?.AddActor(actor);
+    _actorCells[actor] = cell;
   }
 
   /// <summary>
@@ -118,8 +125,11 @@ public class GameMap2D
   public void RemoveActor(IMapActor actor)
   {
     _actors.Remove(actor);
-    var cell = GetCell(actor.Position);
-    cell?.RemoveActor(actor);
+    if (_actorCells.TryGetValue(actor, out var oldCell))
+    {
+      oldCell?.RemoveActor(actor);
+      _actorCells.Remove(actor);
+    }
   }
 
   /// <summary>
@@ -139,19 +149,22 @@ public class GameMap2D
   }
 
   /// <summary>
-  /// Update actor's cell after movement
+  /// Update actor's cell after movement (efficient - only updates if cell changed)
   /// </summary>
   public void UpdateActorCell(IMapActor actor)
   {
-    // Remove from old cells
-    foreach (var cell in GetSurroundingCells(actor.GetGridCell()))
-    {
-      cell.RemoveActor(actor);
-    }
-
-    // Add to new cell
     var newCell = GetCell(actor.Position);
-    newCell?.AddActor(actor);
+    
+    // Get the old cell from tracking
+    _actorCells.TryGetValue(actor, out var oldCell);
+    
+    // Only update if cell changed
+    if (oldCell != newCell)
+    {
+      oldCell?.RemoveActor(actor);
+      newCell?.AddActor(actor);
+      _actorCells[actor] = newCell;
+    }
   }
 
   /// <summary>
