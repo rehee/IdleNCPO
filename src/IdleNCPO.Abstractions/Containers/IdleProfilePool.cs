@@ -13,6 +13,11 @@ public static class IdleProfilePool
   private static bool _initialized;
   private static readonly Dictionary<Type, object> _containers = new();
 
+  // Method names for reflection - using DayOfWeek as a placeholder enum to satisfy generic constraint
+  private const string GetMethodName = nameof(IIdleProfileContainer<DayOfWeek>.Get);
+  private const string GetAllMethodName = nameof(IIdleProfileContainer<DayOfWeek>.GetAll);
+  private const string AddMethodName = nameof(IIdleProfileContainer<DayOfWeek>.Add);
+
   /// <summary>
   /// Check if the pool has been initialized
   /// </summary>
@@ -66,7 +71,7 @@ public static class IdleProfilePool
 
     // Use reflection to call Get method on the container
     var containerType = containerObj.GetType();
-    var getMethod = containerType.GetMethod("Get");
+    var getMethod = containerType.GetMethod(GetMethodName);
     if (getMethod == null) return null;
 
     var enumValue = Enum.ToObject(keyType, keyValue);
@@ -99,7 +104,7 @@ public static class IdleProfilePool
 
     // Use reflection to call GetAll method on the container
     var containerType = containerObj.GetType();
-    var getAllMethod = containerType.GetMethod("GetAll");
+    var getAllMethod = containerType.GetMethod(GetAllMethodName);
     if (getAllMethod == null) return Enumerable.Empty<object>();
 
     var result = getAllMethod.Invoke(containerObj, null);
@@ -158,7 +163,7 @@ public static class IdleProfilePool
       catch (ReflectionTypeLoadException ex)
       {
         // Some types couldn't be loaded, use the ones that could
-        types = ex.Types.Where(t => t != null).ToArray()!;
+        types = ex.Types.OfType<Type>().ToArray();
       }
       catch
       {
@@ -209,7 +214,7 @@ public static class IdleProfilePool
     if (profileInstance == null) return;
 
     // Add to container using reflection
-    var addMethod = containerObj.GetType().GetMethod("Add");
+    var addMethod = containerObj.GetType().GetMethod(AddMethodName);
     addMethod?.Invoke(containerObj, new[] { profileInstance });
   }
 }
