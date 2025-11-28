@@ -1,3 +1,4 @@
+using IdleNCPO.Abstractions.Components;
 using IdleNCPO.Abstractions.Enums;
 using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Core.Components;
@@ -45,23 +46,36 @@ public class BattleService : IBattle
     if (mapProfile == null)
       throw new ArgumentException($"Map profile not found: {seed.MapKey}");
 
+    // Use 20x20 as default size if profile doesn't specify
+    var width = mapProfile.Width > 0 ? mapProfile.Width : GameMap2D.DefaultWidth;
+    var height = mapProfile.Height > 0 ? mapProfile.Height : GameMap2D.DefaultHeight;
+
     var map = new MapIdleComponent(seed.MapKey)
     {
-      Width = mapProfile.Width,
-      Height = mapProfile.Height,
+      Width = width,
+      Height = height,
       CurrentWave = 1,
       TotalWaves = mapProfile.Waves.Count,
-      Player = CreatePlayerComponent(seed.Player)
+      Player = CreatePlayerComponent(seed.Player, width, height)
     };
 
     // Spawn initial wave
     SpawnWave(map, mapProfile, 1, seed.MapLevel);
 
+    // Initialize the 2D game map
+    map.InitializeGameMap();
+
     return map;
   }
 
-  private CharacterIdleComponent CreatePlayerComponent(CharacterDTO dto)
+  private CharacterIdleComponent CreatePlayerComponent(CharacterDTO dto, int mapWidth, int mapHeight)
   {
+    // Random position for player (typically near spawn area)
+    var position = new Position2D(
+      _battleRandom.NextDouble() * 3 + 1, // Start in left area (1-4)
+      _battleRandom.NextDouble() * (mapHeight - 2) + 1 // Random Y
+    );
+
     var character = new CharacterIdleComponent
     {
       Id = dto.Id,
@@ -72,8 +86,10 @@ public class BattleService : IBattle
       Dexterity = dto.Dexterity,
       Intelligence = dto.Intelligence,
       Vitality = dto.Vitality,
-      X = 0,
-      Y = 0
+      X = (int)position.X,
+      Y = (int)position.Y,
+      Position = position,
+      MoveSpeed = 0.1
     };
     
     character.CurrentHealth = character.MaxHealth;
@@ -138,6 +154,13 @@ public class BattleService : IBattle
       for (int i = 0; i < spawn.Count; i++)
       {
         var level = mapLevel + spawn.LevelModifier;
+        
+        // Random 2D position for monster (spawn in right area of map)
+        var position = new Position2D(
+          _battleRandom.NextDouble() * (map.Width / 2 - 1) + map.Width / 2, // Right half
+          _battleRandom.NextDouble() * (map.Height - 2) + 1
+        );
+
         var monster = new MonsterIdleComponent(spawn.MonsterType)
         {
           Name = monsterProfile.Name,
@@ -147,8 +170,10 @@ public class BattleService : IBattle
           BaseArmor = monsterProfile.BaseArmor + (level / 2),
           BaseExperience = monsterProfile.BaseExperience,
           DamageType = monsterProfile.DamageType,
-          X = _battleRandom.Next(map.Width),
-          Y = _battleRandom.Next(map.Height)
+          X = (int)position.X,
+          Y = (int)position.Y,
+          Position = position,
+          MoveSpeed = 0.08
         };
         monster.CurrentHealth = monster.MaxHealth;
         monster.CurrentMana = monster.MaxMana;
@@ -156,6 +181,9 @@ public class BattleService : IBattle
         map.Monsters.Add(monster);
       }
     }
+
+    // Update game map actors after spawning new wave
+    map.UpdateGameMapActors();
   }
 
   public void ProcessTick()
@@ -163,6 +191,12 @@ public class BattleService : IBattle
     if (IsFinished) return;
 
     CurrentTick++;
+
+    // Process 2D movement for all actors
+    ProcessMovement();
+
+    // Check collisions
+    ProcessCollisions();
 
     // Process player actions
     ProcessPlayerTurn();
@@ -177,6 +211,41 @@ public class BattleService : IBattle
     UpdateCooldowns();
   }
 
+  /// <summary>
+  /// Process movement for all actors towards their targets
+  /// </summary>
+  private void ProcessMovement()
+  {
+    if (Map.GameMap == null) return;
+
+    // Set player's target to nearest alive monster
+    if (Map.Player != null && Map.Player.IsAlive)
+    {
+      var nearestMonster = Map.GetAliveMonsters()
+        .OrderBy(m => Map.Player.DistanceTo(m))
+        .FirstOrDefault();
+      Map.Player.MoveTarget = nearestMonster;
+    }
+
+    // Set each monster's target to the player
+    foreach (var monster in Map.GetAliveMonsters())
+    {
+      monster.MoveTarget = Map.Player;
+    }
+
+    // Process movement
+    Map.GameMap.ProcessMovement();
+  }
+
+  /// <summary>
+  /// Check and update collision states
+  /// </summary>
+  private void ProcessCollisions()
+  {
+    if (Map.GameMap == null) return;
+    Map.GameMap.CheckCollisions();
+  }
+
   private void ProcessPlayerTurn()
   {
     if (Map.Player == null || !Map.Player.IsAlive) return;
@@ -184,11 +253,19 @@ public class BattleService : IBattle
     var aliveMonsters = Map.GetAliveMonsters();
     if (aliveMonsters.Count == 0) return;
 
-    // Find best skill to use
-    var target = aliveMonsters.First();
+    // Find nearest monster in attack range
     var skill = Map.Player.Skills.FirstOrDefault(s => s.IsReady && Map.Player.CurrentMana >= s.ManaCost);
+    if (skill == null) return;
 
-    if (skill != null)
+    // Find target in skill range (calculate distance once per monster)
+    var target = aliveMonsters
+      .Select(m => new { Monster = m, Distance = Map.Player.DistanceTo(m) })
+      .Where(x => x.Distance <= skill.Range)
+      .OrderBy(x => x.Distance)
+      .Select(x => x.Monster)
+      .FirstOrDefault();
+
+    if (target != null)
     {
       UseSkill(Map.Player, target, skill);
     }
@@ -201,11 +278,12 @@ public class BattleService : IBattle
 
     var damage = skill.CalculateDamage() + (user.Strength / 2);
     
-    if (skill.IsAreaOfEffect)
+    if (skill.IsAreaOfEffect && Map.GameMap != null)
     {
-      var targets = Map.GetAliveMonsters()
-        .Where(m => Math.Abs(m.X - target.X) <= skill.AreaRadius && 
-                    Math.Abs(m.Y - target.Y) <= skill.AreaRadius)
+      // Use 2D position for area of effect
+      var targets = Map.GameMap.GetActorsInRange(target.Position, skill.AreaRadius)
+        .OfType<MonsterIdleComponent>()
+        .Where(m => m.IsAlive)
         .ToList();
       
       foreach (var t in targets)
@@ -231,9 +309,15 @@ public class BattleService : IBattle
   {
     if (Map.Player == null || !Map.Player.IsAlive) return;
 
+    // Monsters only attack if they are colliding with the player (close combat)
     foreach (var monster in Map.GetAliveMonsters())
     {
-      Map.Player.TakeDamage(monster.BaseDamage);
+      // Check if monster is in melee range (collision or very close)
+      var distance = monster.DistanceTo(Map.Player);
+      if (distance <= GameMap2D.CollisionThreshold || monster.IsColliding)
+      {
+        Map.Player.TakeDamage(monster.BaseDamage);
+      }
     }
   }
 

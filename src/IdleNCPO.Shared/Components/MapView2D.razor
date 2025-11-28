@@ -1,0 +1,153 @@
+@using IdleNCPO.Core.Services
+@using IdleNCPO.Abstractions.Components
+
+<div class="card map-view-2d">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5>战斗地图 - @GetMapName(Battle?.Map.ProfileKey ?? EnumMap.NotSpecified)</h5>
+    <span class="badge bg-info">Tick: @(Battle?.CurrentTick ?? 0)</span>
+  </div>
+  <div class="card-body">
+    @if (Battle != null && Battle.Map.GameMap != null)
+    {
+      <div class="map-container" style="position: relative; width: @(Battle.Map.GameMap.PixelWidth)px; height: @(Battle.Map.GameMap.PixelHeight)px; background-color: #2a2a2a; border: 2px solid #444; overflow: hidden;">
+        @* Grid lines *@
+        @for (int x = 0; x <= Battle.Map.Width; x++)
+        {
+          <div style="position: absolute; left: @(x * GameMap2D.PixelsPerUnit)px; top: 0; width: 1px; height: 100%; background-color: #333;"></div>
+        }
+        @for (int y = 0; y <= Battle.Map.Height; y++)
+        {
+          <div style="position: absolute; left: 0; top: @(y * GameMap2D.PixelsPerUnit)px; width: 100%; height: 1px; background-color: #333;"></div>
+        }
+        
+        @* Player *@
+        @if (Battle.Map.Player != null && Battle.Map.Player.IsAlive)
+        {
+          var playerPixel = GetPixelPosition(Battle.Map.Player.Position);
+          var playerSize = (int)(Battle.Map.Player.Radius * 2 * GameMap2D.PixelsPerUnit);
+          <div class="actor player @(Battle.Map.Player.IsColliding ? "colliding" : "")"
+               style="position: absolute; 
+                      left: @(playerPixel.PixelX - playerSize/2)px; 
+                      top: @(playerPixel.PixelY - playerSize/2)px; 
+                      width: @(playerSize)px; 
+                      height: @(playerSize)px; 
+                      background-color: @(Battle.Map.Player.IsColliding ? "#ff6b6b" : "#4ecdc4"); 
+                      border-radius: 50%; 
+                      border: 2px solid #fff;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 10px;
+                      color: #fff;
+                      text-shadow: 1px 1px 1px #000;">
+            P
+          </div>
+        }
+        
+        @* Monsters *@
+        @foreach (var monster in Battle.Map.GetAliveMonsters())
+        {
+          var monsterPixel = GetPixelPosition(monster.Position);
+          var monsterSize = (int)(monster.Radius * 2 * GameMap2D.PixelsPerUnit);
+          <div class="actor monster @(monster.IsColliding ? "colliding" : "")"
+               style="position: absolute; 
+                      left: @(monsterPixel.PixelX - monsterSize/2)px; 
+                      top: @(monsterPixel.PixelY - monsterSize/2)px; 
+                      width: @(monsterSize)px; 
+                      height: @(monsterSize)px; 
+                      background-color: @(monster.IsColliding ? "#ff6b6b" : "#e74c3c"); 
+                      border-radius: 50%; 
+                      border: 2px solid #c0392b;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 8px;
+                      color: #fff;
+                      text-shadow: 1px 1px 1px #000;">
+            M
+          </div>
+        }
+      </div>
+      
+      @* Stats *@
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <h6>玩家位置</h6>
+          @if (Battle.Map.Player != null)
+          {
+            <small>
+              X: @Battle.Map.Player.Position.X.ToString("F2"), 
+              Y: @Battle.Map.Player.Position.Y.ToString("F2")
+              <br/>
+              格子: (@Battle.Map.Player.GetGridCell().GridX, @Battle.Map.Player.GetGridCell().GridY)
+              <br/>
+              碰撞: @(Battle.Map.Player.IsColliding ? "是" : "否")
+            </small>
+          }
+        </div>
+        <div class="col-md-6">
+          <h6>怪物统计</h6>
+          <small>
+            存活: @Battle.Map.GetAliveMonsters().Count / @Battle.Map.Monsters.Count
+            <br/>
+            波次: @Battle.Map.CurrentWave / @Battle.Map.TotalWaves
+          </small>
+        </div>
+      </div>
+    }
+    else
+    {
+      <div class="text-center text-muted">
+        <p>地图未初始化</p>
+      </div>
+    }
+  </div>
+</div>
+
+<style>
+  .map-view-2d .map-container {
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .map-view-2d .actor {
+    transition: all 0.1s ease-out;
+    z-index: 10;
+  }
+  
+  .map-view-2d .actor.colliding {
+    animation: pulse 0.5s ease-in-out infinite;
+  }
+  
+  @@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  
+  .map-view-2d .player {
+    z-index: 20;
+  }
+</style>
+
+@code {
+  [Parameter]
+  public BattleService? Battle { get; set; }
+
+  private string GetMapName(EnumMap map)
+  {
+    return map switch
+    {
+      EnumMap.StarterVillage => "新手村",
+      EnumMap.DarkCave => "黑暗洞窟",
+      EnumMap.ForestPath => "森林小径",
+      EnumMap.GoblinCamp => "哥布林营地",
+      EnumMap.UndeadCrypt => "亡灵地穴",
+      _ => map.ToString()
+    };
+  }
+
+  private (int PixelX, int PixelY) GetPixelPosition(Position2D position)
+  {
+    return GameMap2D.ToPixelCoordinates(position);
+  }
+}
