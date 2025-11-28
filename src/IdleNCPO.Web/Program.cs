@@ -11,7 +11,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddSingleton<ProfileService>();
-builder.Services.AddSingleton<IProfileService>(sp => sp.GetRequiredService<ProfileService>());
 builder.Services.AddSingleton<IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>, BattleServiceFactory>();
 
 await builder.Build().RunAsync();

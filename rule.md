@@ -17,7 +17,7 @@ IdleNCPO 是一个以暗黑破坏神、流放之路和 Hall of Fame (HOF) 为基
 - Enum 类以 `Enum` 前缀开头 (例如: `EnumMap`, `EnumMonster`)
 - Enum 默认值为 `NotSpecified = 0`
 - Enum 命名格式: `Enum[类名]`，尽量不带后缀
-- 接口命名以 `I` 前缀开头 (例如: `IProfileService`, `IBattleServiceFactory`)
+- 接口命名以 `I` 前缀开头 (例如: `IBattleServiceFactory`, `IBattlePlaybackService`)
 
 ### 类型转换 (Type Conversion)
 - 类型转换方法应放在 Helper 中
@@ -33,7 +33,6 @@ IdleNCPO 是一个以暗黑破坏神、流放之路和 Hall of Fame (HOF) 为基
 ```csharp
 // 在 Program.cs 中注册服务
 builder.Services.AddSingleton<ProfileService>();
-builder.Services.AddSingleton<IProfileService>(sp => sp.GetRequiredService<ProfileService>());
 builder.Services.AddSingleton<IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>, BattleServiceFactory>();
 ```
 
@@ -59,7 +58,7 @@ var battle = battleFactory.CreateBattle(seed);
 
 ### 接口隔离原则 (Interface Segregation Principle)
 - Profile 相关接口: `IMapProfile`, `IMonsterProfile`, `ISkillProfile`, `IItemProfile`, `IEquipmentProfile`
-- 服务接口: `IProfileService`, `IBattleServiceFactory`, `IBattlePlaybackService`
+- 服务接口: `IBattleServiceFactory`, `IBattlePlaybackService`
 - 领域接口: `IBattle`, `IActor`, `IComponent`, `IEntity`
 
 ## 架构设计 (Architecture Design)

@@ -1,5 +1,4 @@
 using IdleNCPO.Abstractions.Enums;
-using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Core.Profiles;
 
 namespace IdleNCPO.Core.Services;
@@ -7,7 +6,7 @@ namespace IdleNCPO.Core.Services;
 /// <summary>
 /// Service for managing and retrieving IdleProfile data
 /// </summary>
-public class ProfileService : IProfileService
+public class ProfileService
 {
   private readonly Dictionary<EnumMap, MapIdleProfile> _mapProfiles = new();
   private readonly Dictionary<EnumMonster, MonsterIdleProfile> _monsterProfiles = new();
@@ -78,20 +77,7 @@ public class ProfileService : IProfileService
     _itemProfiles[profile.Key] = profile;
   }
 
-  // Interface implementations
-  IMapProfile? IProfileService.GetMapProfile(EnumMap key) => GetMapProfile(key);
-  IMonsterProfile? IProfileService.GetMonsterProfile(EnumMonster key) => GetMonsterProfile(key);
-  ISkillProfile? IProfileService.GetSkillProfile(EnumSkill key) => GetSkillProfile(key);
-  IItemProfile? IProfileService.GetItemProfile(EnumItem key) => GetItemProfile(key);
-  IEquipmentProfile? IProfileService.GetEquipmentProfile(EnumItem key) => GetEquipmentProfile(key);
-
-  IEnumerable<IMapProfile> IProfileService.GetAllMapProfiles() => _mapProfiles.Values;
-  IEnumerable<IMonsterProfile> IProfileService.GetAllMonsterProfiles() => _monsterProfiles.Values;
-  IEnumerable<ISkillProfile> IProfileService.GetAllSkillProfiles() => _skillProfiles.Values;
-  IEnumerable<IItemProfile> IProfileService.GetAllItemProfiles() => _itemProfiles.Values;
-  IEnumerable<IEquipmentProfile> IProfileService.GetAllEquipmentProfiles() => _itemProfiles.Values.OfType<EquipmentIdleProfile>();
-
-  // Concrete implementations for internal use
+  // Concrete implementations
   public MapIdleProfile? GetMapProfile(EnumMap key) => _mapProfiles.TryGetValue(key, out var profile) ? profile : null;
   public MonsterIdleProfile? GetMonsterProfile(EnumMonster key) => _monsterProfiles.TryGetValue(key, out var profile) ? profile : null;
   public SkillIdleProfile? GetSkillProfile(EnumSkill key) => _skillProfiles.TryGetValue(key, out var profile) ? profile : null;

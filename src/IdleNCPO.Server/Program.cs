@@ -10,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ProfileService>();
-builder.Services.AddSingleton<IProfileService>(sp => sp.GetRequiredService<ProfileService>());
 builder.Services.AddSingleton<IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>, BattleServiceFactory>();
 builder.Services.AddCors(options =>
 {
