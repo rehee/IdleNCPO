@@ -14,7 +14,7 @@
   {
     <div class="row mt-3">
       <div class="col-12">
-        <BattleView Battle="@CurrentBattle" OnBattleComplete="@HandleBattleComplete" />
+        <BattleView Battle="@CurrentBattle" ProfileService="@ProfileService" OnBattleComplete="@HandleBattleComplete" />
       </div>
     </div>
   }
@@ -32,6 +32,9 @@
 
   [Parameter]
   public BattleService? CurrentBattle { get; set; }
+
+  [Parameter]
+  public ProfileService? ProfileService { get; set; }
 
   [Parameter]
   public EventCallback<BattleService> OnBattleComplete { get; set; }

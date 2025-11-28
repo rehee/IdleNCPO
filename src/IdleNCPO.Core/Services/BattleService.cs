@@ -15,6 +15,7 @@ public class BattleService : IBattle
   private readonly ProfileService _profileService;
   private readonly Random _battleRandom;
   private readonly Random _lootRandom;
+  private readonly BattleSeedDTO _seed;
   
   public int BattleSeed { get; }
   public int LootSeed { get; }
@@ -26,9 +27,15 @@ public class BattleService : IBattle
   public int ExperienceGained { get; private set; }
   public List<ItemDTO> ItemsDropped { get; } = new();
 
+  /// <summary>
+  /// Maximum ticks for this battle based on map profile
+  /// </summary>
+  public int MaxTicks { get; private set; }
+
   public BattleService(ProfileService profileService, BattleSeedDTO seed)
   {
     _profileService = profileService;
+    _seed = seed;
     BattleSeed = seed.BattleSeed;
     LootSeed = seed.LootSeed;
     _battleRandom = new Random(BattleSeed);
@@ -45,6 +52,9 @@ public class BattleService : IBattle
     var mapProfile = _profileService.GetMapProfile(seed.MapKey);
     if (mapProfile == null)
       throw new ArgumentException($"Map profile not found: {seed.MapKey}");
+
+    // Set MaxTicks based on map profile
+    MaxTicks = mapProfile.MaxTicks;
 
     // Use 20x20 as default size if profile doesn't specify
     var width = mapProfile.Width > 0 ? mapProfile.Width : GameMap2D.DefaultWidth;
@@ -397,13 +407,48 @@ public class BattleService : IBattle
   }
 
   /// <summary>
-  /// Run the battle to completion
+  /// Run the battle to completion using map's MaxTicks
   /// </summary>
-  public void RunToCompletion(int maxTicks = 10000)
+  public void RunToCompletion()
+  {
+    RunToCompletion(MaxTicks);
+  }
+
+  /// <summary>
+  /// Run the battle to completion with specified max ticks
+  /// </summary>
+  public void RunToCompletion(int maxTicks)
   {
     while (!IsFinished && CurrentTick < maxTicks)
     {
       ProcessTick();
     }
+
+    // If max ticks reached without victory, mark as defeat
+    if (!IsFinished && CurrentTick >= maxTicks)
+    {
+      IsFinished = true;
+      IsVictory = false;
+    }
+  }
+
+  /// <summary>
+  /// Get the battle result DTO for saving and replay
+  /// </summary>
+  public BattleResultDTO GetBattleResult()
+  {
+    return new BattleResultDTO
+    {
+      BattleSeed = BattleSeed,
+      LootSeed = LootSeed,
+      MapKey = Map.ProfileKey,
+      MapLevel = _seed.MapLevel,
+      Player = _seed.Player,
+      TotalTicks = CurrentTick,
+      IsVictory = IsVictory,
+      ExperienceGained = ExperienceGained,
+      ItemsDropped = new List<ItemDTO>(ItemsDropped),
+      CompletedAt = DateTime.UtcNow
+    };
   }
 }

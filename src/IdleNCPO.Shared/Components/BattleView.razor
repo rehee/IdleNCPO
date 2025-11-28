@@ -1,40 +1,55 @@
 @using IdleNCPO.Core.Services
+@using IdleNCPO.Core.DTOs
+@using IdleNCPO.Core.Profiles
+@implements IDisposable
 
 <div class="card battle-view">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5>战斗中 - @GetMapName(Battle?.Map.ProfileKey ?? EnumMap.NotSpecified)</h5>
-    <span class="badge bg-info">Tick: @(Battle?.CurrentTick ?? 0)</span>
+    <h5>
+      @if (IsPlayingBack)
+      {
+        <span class="badge bg-warning me-2">回放中</span>
+      }
+      战斗 - @GetMapName(DisplayBattle?.Map.ProfileKey ?? EnumMap.NotSpecified)
+    </h5>
+    <div>
+      <span class="badge bg-info me-2">Tick: @(DisplayBattle?.CurrentTick ?? 0)</span>
+      @if (BattleResult != null)
+      {
+        <span class="badge bg-secondary">耗时: @BattleResult.DurationSeconds.ToString("F2")秒</span>
+      }
+    </div>
   </div>
   <div class="card-body">
-    @if (Battle != null)
+    @if (DisplayBattle != null)
     {
       @* 2D Map View *@
       <div class="mb-3">
-        <MapView2D Battle="@Battle" />
+        <MapView2D Battle="@DisplayBattle" />
       </div>
       
       <div class="row">
         <div class="col-md-6">
           <h6>玩家</h6>
-          @if (Battle.Map.Player != null)
+          @if (DisplayBattle.Map.Player != null)
           {
             <div class="progress mb-2">
               <div class="progress-bar bg-danger" role="progressbar" 
-                   style="width: @(Battle.Map.Player.MaxHealth > 0 ? (Battle.Map.Player.CurrentHealth * 100 / Battle.Map.Player.MaxHealth) : 0)%">
-                HP: @Battle.Map.Player.CurrentHealth / @Battle.Map.Player.MaxHealth
+                   style="width: @(DisplayBattle.Map.Player.MaxHealth > 0 ? (DisplayBattle.Map.Player.CurrentHealth * 100 / DisplayBattle.Map.Player.MaxHealth) : 0)%">
+                HP: @DisplayBattle.Map.Player.CurrentHealth / @DisplayBattle.Map.Player.MaxHealth
               </div>
             </div>
             <div class="progress mb-2">
               <div class="progress-bar bg-primary" role="progressbar" 
-                   style="width: @(Battle.Map.Player.MaxMana > 0 ? (Battle.Map.Player.CurrentMana * 100 / Battle.Map.Player.MaxMana) : 0)%">
-                MP: @Battle.Map.Player.CurrentMana / @Battle.Map.Player.MaxMana
+                   style="width: @(DisplayBattle.Map.Player.MaxMana > 0 ? (DisplayBattle.Map.Player.CurrentMana * 100 / DisplayBattle.Map.Player.MaxMana) : 0)%">
+                MP: @DisplayBattle.Map.Player.CurrentMana / @DisplayBattle.Map.Player.MaxMana
               </div>
             </div>
           }
         </div>
         <div class="col-md-6">
-          <h6>怪物 (波次 @Battle.Map.CurrentWave/@Battle.Map.TotalWaves)</h6>
-          @foreach (var monster in Battle.Map.GetAliveMonsters().Take(5))
+          <h6>怪物 (波次 @DisplayBattle.Map.CurrentWave/@DisplayBattle.Map.TotalWaves)</h6>
+          @foreach (var monster in DisplayBattle.Map.GetAliveMonsters().Take(5))
           {
             <div class="monster-hp mb-1">
               <small>@monster.Name Lv.@monster.Level</small>
@@ -45,21 +60,25 @@
               </div>
             </div>
           }
-          @if (Battle.Map.GetAliveMonsters().Count() > 5)
+          @if (DisplayBattle.Map.GetAliveMonsters().Count() > 5)
           {
-            <small class="text-muted">还有 @(Battle.Map.GetAliveMonsters().Count() - 5) 个怪物...</small>
+            <small class="text-muted">还有 @(DisplayBattle.Map.GetAliveMonsters().Count() - 5) 个怪物...</small>
           }
         </div>
       </div>
 
-      @if (!Battle.IsFinished)
+      @* Battle Controls *@
+      @if (!DisplayBattle.IsFinished && !IsPlayingBack)
       {
         <div class="mt-3 text-center">
-          <button class="btn btn-primary me-2" @onclick="ProcessTicks" disabled="@isProcessing">
+          <button class="btn btn-warning me-2" @onclick="InstantBattle" disabled="@isProcessing">
             @if (isProcessing)
             {
               <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             }
+            即时战斗
+          </button>
+          <button class="btn btn-primary me-2" @onclick="ProcessTicks" disabled="@isProcessing">
             战斗 (10 Ticks)
           </button>
           <button class="btn btn-success" @onclick="AutoBattle" disabled="@isProcessing">
@@ -67,21 +86,46 @@
           </button>
         </div>
       }
-      else
+      else if (IsPlayingBack)
       {
         <div class="mt-3 text-center">
-          <div class="alert @(Battle.IsVictory ? "alert-success" : "alert-danger")">
-            <h5>@(Battle.IsVictory ? "胜利!" : "失败...")</h5>
-            @if (Battle.IsVictory)
+          <button class="btn btn-danger" @onclick="StopPlayback">
+            停止回放
+          </button>
+        </div>
+      }
+      else
+      {
+        @* Battle Result Display *@
+        <div class="mt-3 text-center">
+          <div class="alert @(DisplayBattle.IsVictory ? "alert-success" : "alert-danger")">
+            <h5>@(DisplayBattle.IsVictory ? "胜利!" : "失败...")</h5>
+            @if (BattleResult != null)
             {
-              <p>获得经验: @Battle.ExperienceGained</p>
-              @if (Battle.ItemsDropped.Count > 0)
+              <p>
+                <strong>战斗耗时:</strong> @BattleResult.DurationSeconds.ToString("F2") 秒 
+                (@BattleResult.TotalTicks ticks)
+              </p>
+              <p><strong>地图:</strong> @GetMapName(BattleResult.MapKey)</p>
+            }
+            @if (DisplayBattle.IsVictory)
+            {
+              <p><strong>获得经验:</strong> @DisplayBattle.ExperienceGained</p>
+              @if (DisplayBattle.ItemsDropped.Count > 0)
               {
-                <p>获得物品: @Battle.ItemsDropped.Count 件</p>
+                <p><strong>获得物品:</strong> @DisplayBattle.ItemsDropped.Count 件</p>
               }
             }
           </div>
-          <button class="btn btn-primary" @onclick="CompleteBattle">返回</button>
+          <div class="btn-group">
+            @if (BattleResult != null)
+            {
+              <button class="btn btn-info" @onclick="StartPlayback" disabled="@IsPlayingBack">
+                <i class="bi bi-play-fill"></i> 播放回放
+              </button>
+            }
+            <button class="btn btn-primary" @onclick="CompleteBattle">返回</button>
+          </div>
         </div>
       }
     }
@@ -93,9 +137,31 @@
   public BattleService? Battle { get; set; }
 
   [Parameter]
+  public ProfileService? ProfileService { get; set; }
+
+  [Parameter]
   public EventCallback<BattleService> OnBattleComplete { get; set; }
 
   private bool isProcessing = false;
+  private BattleResultDTO? BattleResult;
+  private BattlePlaybackService? _playbackService;
+  private BattleService? _playbackBattle;
+  private bool IsPlayingBack => _playbackService?.IsPlaying ?? false;
+
+  /// <summary>
+  /// The battle to display (either current battle or playback)
+  /// </summary>
+  private BattleService? DisplayBattle => _playbackBattle ?? Battle;
+
+  protected override void OnInitialized()
+  {
+    if (ProfileService != null)
+    {
+      _playbackService = new BattlePlaybackService(ProfileService);
+      _playbackService.OnTickProcessed += HandlePlaybackTick;
+      _playbackService.OnPlaybackComplete += HandlePlaybackComplete;
+    }
+  }
 
   private string GetMapName(EnumMap map)
   {
@@ -110,6 +176,24 @@
     };
   }
 
+  /// <summary>
+  /// Instant battle - completes immediately and saves result
+  /// </summary>
+  private void InstantBattle()
+  {
+    if (Battle == null) return;
+    isProcessing = true;
+    
+    // Run battle to completion instantly
+    Battle.RunToCompletion();
+    
+    // Save the battle result for replay
+    BattleResult = Battle.GetBattleResult();
+    
+    isProcessing = false;
+    StateHasChanged();
+  }
+
   private void ProcessTicks()
   {
     if (Battle == null) return;
@@ -120,6 +204,12 @@
       Battle.ProcessTick();
     }
     
+    // If battle finished, save result
+    if (Battle.IsFinished && BattleResult == null)
+    {
+      BattleResult = Battle.GetBattleResult();
+    }
+    
     isProcessing = false;
     StateHasChanged();
   }
@@ -128,14 +218,66 @@
   {
     if (Battle == null) return;
     Battle.RunToCompletion();
+    
+    // Save the battle result
+    BattleResult = Battle.GetBattleResult();
+    
     StateHasChanged();
+  }
+
+  /// <summary>
+  /// Start playback of the battle result
+  /// </summary>
+  private async Task StartPlayback()
+  {
+    if (BattleResult == null || _playbackService == null) return;
+    
+    await _playbackService.StartPlaybackAsync(BattleResult);
+  }
+
+  /// <summary>
+  /// Stop the current playback
+  /// </summary>
+  private async Task StopPlayback()
+  {
+    if (_playbackService == null) return;
+    await _playbackService.StopPlaybackAsync();
+    _playbackBattle = null;
+    StateHasChanged();
+  }
+
+  private void HandlePlaybackTick(BattleService battle)
+  {
+    _playbackBattle = battle;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void HandlePlaybackComplete(BattleService battle)
+  {
+    _playbackBattle = null;
+    InvokeAsync(StateHasChanged);
   }
 
   private async Task CompleteBattle()
   {
+    // Stop any playback first
+    if (_playbackService != null)
+    {
+      await _playbackService.StopPlaybackAsync();
+    }
+    
     if (Battle != null)
     {
       await OnBattleComplete.InvokeAsync(Battle);
+    }
+  }
+
+  public void Dispose()
+  {
+    if (_playbackService != null)
+    {
+      _playbackService.OnTickProcessed -= HandlePlaybackTick;
+      _playbackService.OnPlaybackComplete -= HandlePlaybackComplete;
     }
   }
 }

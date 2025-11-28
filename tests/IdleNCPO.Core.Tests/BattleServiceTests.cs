@@ -2,6 +2,7 @@ using IdleNCPO.Abstractions.Enums;
 using IdleNCPO.Core.Components;
 using IdleNCPO.Core.DTOs;
 using IdleNCPO.Core.Helpers;
+using IdleNCPO.Core.Profiles;
 using IdleNCPO.Core.Services;
 
 namespace IdleNCPO.Core.Tests;
@@ -85,6 +86,98 @@ public class BattleServiceTests
 
     Assert.True(battle.IsFinished);
     Assert.True(battle.CurrentTick > 0);
+  }
+
+  [Fact]
+  public void BattleService_MaxTicks_ShouldBeSetFromMapProfile()
+  {
+    var seed = CreateTestBattleSeed();
+    var battle = new BattleService(_profileService, seed);
+
+    // MaxTicks should be MaxBattleDuration (300) * TicksPerSecond (30) = 9000
+    Assert.Equal(MapIdleProfile.DefaultMaxBattleDuration * MapIdleProfile.TicksPerSecond, battle.MaxTicks);
+  }
+
+  [Fact]
+  public void BattleService_GetBattleResult_ShouldReturnValidResult()
+  {
+    var seed = CreateTestBattleSeed(12345, 67890);
+    var battle = new BattleService(_profileService, seed);
+
+    battle.RunToCompletion();
+    var result = battle.GetBattleResult();
+
+    Assert.NotNull(result);
+    Assert.Equal(seed.BattleSeed, result.BattleSeed);
+    Assert.Equal(seed.LootSeed, result.LootSeed);
+    Assert.Equal(seed.MapKey, result.MapKey);
+    Assert.Equal(battle.CurrentTick, result.TotalTicks);
+    Assert.Equal(battle.IsVictory, result.IsVictory);
+    Assert.Equal(battle.ExperienceGained, result.ExperienceGained);
+  }
+
+  [Fact]
+  public void BattleResultDTO_DurationSeconds_ShouldCalculateCorrectly()
+  {
+    var result = new BattleResultDTO
+    {
+      TotalTicks = 60 // 60 ticks = 2 seconds at 30 ticks/second
+    };
+
+    Assert.Equal(2.0, result.DurationSeconds);
+  }
+
+  [Fact]
+  public void BattleResultDTO_ToSeedDTO_ShouldCreateValidSeed()
+  {
+    var player = new CharacterDTO { Name = "Test" };
+    var result = new BattleResultDTO
+    {
+      BattleSeed = 12345,
+      LootSeed = 67890,
+      MapKey = EnumMap.StarterVillage,
+      MapLevel = 5,
+      Player = player
+    };
+
+    var seed = result.ToSeedDTO();
+
+    Assert.Equal(result.BattleSeed, seed.BattleSeed);
+    Assert.Equal(result.LootSeed, seed.LootSeed);
+    Assert.Equal(result.MapKey, seed.MapKey);
+    Assert.Equal(result.MapLevel, seed.MapLevel);
+    Assert.Same(player, seed.Player);
+  }
+
+  [Fact]
+  public void BattleService_ReplayFromResult_ShouldProduceSameOutcome()
+  {
+    var seed = CreateTestBattleSeed(12345, 67890);
+    var battle1 = new BattleService(_profileService, seed);
+
+    battle1.RunToCompletion();
+    var result = battle1.GetBattleResult();
+
+    // Create a new battle from the result
+    var replaySeed = result.ToSeedDTO();
+    var battle2 = new BattleService(_profileService, replaySeed);
+    battle2.RunToCompletion();
+
+    Assert.Equal(battle1.CurrentTick, battle2.CurrentTick);
+    Assert.Equal(battle1.IsVictory, battle2.IsVictory);
+    Assert.Equal(battle1.ExperienceGained, battle2.ExperienceGained);
+  }
+
+  [Fact]
+  public void MapIdleProfile_TicksPerSecond_ShouldBe30()
+  {
+    Assert.Equal(30, MapIdleProfile.TicksPerSecond);
+  }
+
+  [Fact]
+  public void MapIdleProfile_DefaultMaxBattleDuration_ShouldBe300Seconds()
+  {
+    Assert.Equal(300, MapIdleProfile.DefaultMaxBattleDuration);
   }
 
   private BattleSeedDTO CreateTestBattleSeed(int? battleSeed = null, int? lootSeed = null)

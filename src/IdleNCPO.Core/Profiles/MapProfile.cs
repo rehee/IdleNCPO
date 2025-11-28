@@ -29,11 +29,31 @@ public class MonsterSpawn
 /// </summary>
 public abstract class MapIdleProfile : IdleProfile<EnumMap>
 {
+  /// <summary>
+  /// Default max battle duration in seconds
+  /// </summary>
+  public const int DefaultMaxBattleDuration = 300;
+
+  /// <summary>
+  /// Ticks per second for battle simulation
+  /// </summary>
+  public const int TicksPerSecond = 30;
+
   public virtual int Width => GameMap2D.DefaultWidth;
   public virtual int Height => GameMap2D.DefaultHeight;
   public abstract int MinLevel { get; }
   public abstract int MaxLevel { get; }
   public abstract List<WaveDefinition> Waves { get; }
+
+  /// <summary>
+  /// Maximum battle duration in seconds
+  /// </summary>
+  public virtual int MaxBattleDuration => DefaultMaxBattleDuration;
+
+  /// <summary>
+  /// Maximum ticks for this battle (MaxBattleDuration * TicksPerSecond)
+  /// </summary>
+  public int MaxTicks => MaxBattleDuration * TicksPerSecond;
 }
 
 /// <summary>
