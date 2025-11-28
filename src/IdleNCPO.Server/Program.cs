@@ -2,6 +2,7 @@ using IdleNCPO.Core.Services;
 using IdleNCPO.Core.DTOs;
 using IdleNCPO.Abstractions.Enums;
 using IdleNCPO.Core.Helpers;
+using IdleNCPO.Abstractions.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ProfileService>();
+builder.Services.AddSingleton<IProfileService>(sp => sp.GetRequiredService<ProfileService>());
+builder.Services.AddSingleton<IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>, BattleServiceFactory>();
 builder.Services.AddCors(options =>
 {
   options.AddDefaultPolicy(policy =>
@@ -67,9 +70,9 @@ app.MapGet("/api/profiles/equipment", (ProfileService profileService) =>
 .WithName("GetEquipment")
 .WithOpenApi();
 
-app.MapPost("/api/battle/simulate", (ProfileService profileService, BattleSeedDTO seed) =>
+app.MapPost("/api/battle/simulate", (IBattleServiceFactory<BattleSeedDTO, BattleResultDTO> battleFactory, BattleSeedDTO seed) =>
 {
-  var battle = new BattleService(profileService, seed);
+  var battle = (BattleService)battleFactory.CreateBattle(seed);
   battle.RunToCompletion();
   
   return new

@@ -1,4 +1,5 @@
 using IdleNCPO.Abstractions.Enums;
+using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Abstractions.Profiles;
 
 namespace IdleNCPO.Core.Profiles;
@@ -6,7 +7,7 @@ namespace IdleNCPO.Core.Profiles;
 /// <summary>
 /// Abstract base profile for all skill types
 /// </summary>
-public abstract class SkillIdleProfile : IdleProfile<EnumSkill>
+public abstract class SkillIdleProfile : IdleProfile<EnumSkill>, ISkillProfile
 {
   public abstract int BaseDamage { get; }
   public abstract int ManaCost { get; }
