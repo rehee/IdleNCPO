@@ -9,16 +9,18 @@ namespace IdleNCPO.Core.Tests;
 public class BattlePlaybackServiceTests
 {
   private readonly ProfileService _profileService;
+  private readonly BattleServiceFactory _battleFactory;
 
   public BattlePlaybackServiceTests()
   {
     _profileService = new ProfileService();
+    _battleFactory = new BattleServiceFactory(_profileService);
   }
 
   [Fact]
   public void BattlePlaybackService_ShouldInitializeCorrectly()
   {
-    var playbackService = new BattlePlaybackService(_profileService);
+    var playbackService = new BattlePlaybackService(_battleFactory);
 
     Assert.False(playbackService.IsPlaying);
     Assert.Null(playbackService.Battle);
@@ -28,7 +30,7 @@ public class BattlePlaybackServiceTests
   [Fact]
   public void BattlePlaybackService_TickDelayMs_ShouldCalculateCorrectly()
   {
-    var playbackService = new BattlePlaybackService(_profileService);
+    var playbackService = new BattlePlaybackService(_battleFactory);
 
     // At 30 ticks per second, delay should be ~33ms
     Assert.Equal(1000 / 30, playbackService.TickDelayMs);
@@ -37,7 +39,7 @@ public class BattlePlaybackServiceTests
   [Fact]
   public async Task BattlePlaybackService_StartPlayback_ShouldPlayBattle()
   {
-    var playbackService = new BattlePlaybackService(_profileService);
+    var playbackService = new BattlePlaybackService(_battleFactory);
     var result = CreateTestBattleResult();
     var ticksProcessed = 0;
 
@@ -52,7 +54,7 @@ public class BattlePlaybackServiceTests
   [Fact]
   public async Task BattlePlaybackService_StartPlayback_ShouldFireCompleteEvent()
   {
-    var playbackService = new BattlePlaybackService(_profileService);
+    var playbackService = new BattlePlaybackService(_battleFactory);
     var result = CreateTestBattleResult();
     var completeCalled = false;
 
@@ -68,7 +70,7 @@ public class BattlePlaybackServiceTests
   [Fact]
   public async Task BattlePlaybackService_StopPlayback_ShouldStopPlaying()
   {
-    var playbackService = new BattlePlaybackService(_profileService);
+    var playbackService = new BattlePlaybackService(_battleFactory);
     var result = CreateTestBattleResult();
 
     // Start in background

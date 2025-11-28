@@ -1,4 +1,5 @@
 using IdleNCPO.Abstractions.Enums;
+using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Abstractions.Profiles;
 using IdleNCPO.Core.Components;
 
@@ -27,7 +28,7 @@ public class MonsterSpawn
 /// Abstract base profile for all map types
 /// Map default: 20x20 units as per requirements
 /// </summary>
-public abstract class MapIdleProfile : IdleProfile<EnumMap>
+public abstract class MapIdleProfile : IdleProfile<EnumMap>, IMapProfile
 {
   /// <summary>
   /// Default max battle duration in seconds

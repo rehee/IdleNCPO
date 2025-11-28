@@ -1,6 +1,7 @@
 @using IdleNCPO.Core.Services
 @using IdleNCPO.Core.DTOs
 @using IdleNCPO.Core.Profiles
+@using IdleNCPO.Abstractions.Interfaces
 @implements IDisposable
 
 <div class="card battle-view">
@@ -137,7 +138,7 @@
   public BattleService? Battle { get; set; }
 
   [Parameter]
-  public ProfileService? ProfileService { get; set; }
+  public IBattleServiceFactory<BattleSeedDTO, BattleResultDTO>? BattleFactory { get; set; }
 
   [Parameter]
   public EventCallback<BattleService> OnBattleComplete { get; set; }
@@ -155,9 +156,9 @@
 
   protected override void OnInitialized()
   {
-    if (ProfileService != null)
+    if (BattleFactory != null)
     {
-      _playbackService = new BattlePlaybackService(ProfileService);
+      _playbackService = new BattlePlaybackService(BattleFactory);
       _playbackService.OnTickProcessed += HandlePlaybackTick;
       _playbackService.OnPlaybackComplete += HandlePlaybackComplete;
     }

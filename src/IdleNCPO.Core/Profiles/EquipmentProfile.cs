@@ -1,4 +1,5 @@
 using IdleNCPO.Abstractions.Enums;
+using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Abstractions.Profiles;
 
 namespace IdleNCPO.Core.Profiles;
@@ -6,7 +7,7 @@ namespace IdleNCPO.Core.Profiles;
 /// <summary>
 /// Abstract base profile for all item types
 /// </summary>
-public abstract class ItemIdleProfile : IdleProfile<EnumItem>
+public abstract class ItemIdleProfile : IdleProfile<EnumItem>, IItemProfile
 {
   public abstract EnumItemCategory Category { get; }
   public virtual int SellValue => 1;
@@ -15,7 +16,7 @@ public abstract class ItemIdleProfile : IdleProfile<EnumItem>
 /// <summary>
 /// Abstract base profile for equipment items
 /// </summary>
-public abstract class EquipmentIdleProfile : ItemIdleProfile
+public abstract class EquipmentIdleProfile : ItemIdleProfile, IEquipmentProfile
 {
   public override EnumItemCategory Category => EnumItemCategory.Equipment;
   public abstract EnumEquipmentCategory EquipmentCategory { get; }

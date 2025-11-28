@@ -1,4 +1,5 @@
 using IdleNCPO.Abstractions.Enums;
+using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Abstractions.Profiles;
 
 namespace IdleNCPO.Core.Profiles;
@@ -6,7 +7,7 @@ namespace IdleNCPO.Core.Profiles;
 /// <summary>
 /// Abstract base profile for all monster types
 /// </summary>
-public abstract class MonsterIdleProfile : IdleProfile<EnumMonster>
+public abstract class MonsterIdleProfile : IdleProfile<EnumMonster>, IMonsterProfile
 {
   public abstract int BaseHealth { get; }
   public abstract int BaseDamage { get; }

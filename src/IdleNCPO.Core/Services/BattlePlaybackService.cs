@@ -1,3 +1,4 @@
+using IdleNCPO.Abstractions.Interfaces;
 using IdleNCPO.Core.DTOs;
 using IdleNCPO.Core.Profiles;
 
@@ -7,9 +8,9 @@ namespace IdleNCPO.Core.Services;
 /// Service for playing back battles in real-time
 /// Plays at 30 ticks per second (1 tick = 1/30 second)
 /// </summary>
-public class BattlePlaybackService
+public class BattlePlaybackService : IBattlePlaybackService
 {
-  private readonly ProfileService _profileService;
+  private readonly IBattleServiceFactory<BattleSeedDTO, BattleResultDTO> _battleFactory;
   private BattleService? _battle;
   private bool _isPlaying;
   private CancellationTokenSource? _cancellationTokenSource;
@@ -24,10 +25,31 @@ public class BattlePlaybackService
   /// </summary>
   public event Action<BattleService>? OnPlaybackComplete;
 
+  // Interface events
+  event Action<IBattle>? IBattlePlaybackService.OnTickProcessed
+  {
+    add { _onTickProcessedInterface += value; }
+    remove { _onTickProcessedInterface -= value; }
+  }
+
+  event Action<IBattle>? IBattlePlaybackService.OnPlaybackComplete
+  {
+    add { _onPlaybackCompleteInterface += value; }
+    remove { _onPlaybackCompleteInterface -= value; }
+  }
+
+  private event Action<IBattle>? _onTickProcessedInterface;
+  private event Action<IBattle>? _onPlaybackCompleteInterface;
+
   /// <summary>
   /// Current battle being played back
   /// </summary>
   public BattleService? Battle => _battle;
+
+  /// <summary>
+  /// Interface implementation for current battle
+  /// </summary>
+  IBattle? IBattlePlaybackService.Battle => _battle;
 
   /// <summary>
   /// Whether playback is currently running
@@ -44,9 +66,9 @@ public class BattlePlaybackService
   /// </summary>
   public int TickDelayMs => 1000 / TicksPerSecond;
 
-  public BattlePlaybackService(ProfileService profileService)
+  public BattlePlaybackService(IBattleServiceFactory<BattleSeedDTO, BattleResultDTO> battleFactory)
   {
-    _profileService = profileService;
+    _battleFactory = battleFactory;
   }
 
   /// <summary>
@@ -59,7 +81,7 @@ public class BattlePlaybackService
 
     // Create a new battle from the seed
     var seed = result.ToSeedDTO();
-    _battle = new BattleService(_profileService, seed);
+    _battle = (BattleService)_battleFactory.CreateBattle(seed);
 
     _isPlaying = true;
     _cancellationTokenSource = new CancellationTokenSource();
@@ -73,6 +95,7 @@ public class BattlePlaybackService
       {
         _battle.ProcessTick();
         OnTickProcessed?.Invoke(_battle);
+        _onTickProcessedInterface?.Invoke(_battle);
 
         // Wait 1/30 second between ticks
         await Task.Delay(TickDelayMs, token);
@@ -80,6 +103,7 @@ public class BattlePlaybackService
 
       _isPlaying = false;
       OnPlaybackComplete?.Invoke(_battle);
+      _onPlaybackCompleteInterface?.Invoke(_battle);
     }
     catch (OperationCanceledException)
     {

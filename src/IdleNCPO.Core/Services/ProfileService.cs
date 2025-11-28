@@ -77,6 +77,7 @@ public class ProfileService
     _itemProfiles[profile.Key] = profile;
   }
 
+  // Concrete implementations
   public MapIdleProfile? GetMapProfile(EnumMap key) => _mapProfiles.TryGetValue(key, out var profile) ? profile : null;
   public MonsterIdleProfile? GetMonsterProfile(EnumMonster key) => _monsterProfiles.TryGetValue(key, out var profile) ? profile : null;
   public SkillIdleProfile? GetSkillProfile(EnumSkill key) => _skillProfiles.TryGetValue(key, out var profile) ? profile : null;

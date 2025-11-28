@@ -9,5 +9,10 @@ public interface IBattle
   int LootSeed { get; }
   int CurrentTick { get; }
   bool IsFinished { get; }
+  bool IsVictory { get; }
+  int MaxTicks { get; }
+  int ExperienceGained { get; }
   void ProcessTick();
+  void RunToCompletion();
+  void RunToCompletion(int maxTicks);
 }

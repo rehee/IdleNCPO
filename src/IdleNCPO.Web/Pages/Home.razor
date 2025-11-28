@@ -1,6 +1,9 @@
 ﻿@page "/"
 @using IdleNCPO.Core.Helpers
+@using IdleNCPO.Core.DTOs
+@using IdleNCPO.Abstractions.Interfaces
 @inject ProfileService ProfileService
+@inject IBattleServiceFactory<BattleSeedDTO, BattleResultDTO> BattleFactory
 
 <PageTitle>IdleNCPO - 放置类暗黑游戏</PageTitle>
 
@@ -34,7 +37,7 @@
       Maps="@ProfileService.GetAllMapProfiles()" 
       OnMapSelected="@HandleMapSelected"
       CurrentBattle="@CurrentBattle"
-      ProfileService="@ProfileService"
+      BattleFactory="@BattleFactory"
       OnBattleComplete="@HandleBattleComplete" />
   }
 </div>
@@ -90,7 +93,7 @@
       1,
       Character.Level);
 
-    CurrentBattle = new BattleService(ProfileService, seed);
+    CurrentBattle = (BattleService)BattleFactory.CreateBattle(seed);
   }
 
   private void HandleBattleComplete(BattleService battle)
